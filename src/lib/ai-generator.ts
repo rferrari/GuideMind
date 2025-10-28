@@ -1,10 +1,9 @@
 import { OpenAI } from 'openai';
 import { TutorialScaffold } from '@/types';
 
-const AI_MODEL = "openai/gpt-oss-20b"
 const openai = new OpenAI({
-  apiKey: process.env.GROQ_API_KEY!,
-  baseURL: "https://api.groq.com/openai/v1",
+  apiKey: process.env.OPENAI_API_KEY!,
+  baseURL: process.env.OPENAI_BASE_URL,
 });
 
 
@@ -75,7 +74,7 @@ Respond with valid JSON only, no additional text or markdown formatting:
 
   try {
     const completion = await openai.chat.completions.create({
-      model: AI_MODEL,
+      model: process.env.OPENAI_LLM_MODEL,
       messages: [
         { 
           role: "system", 

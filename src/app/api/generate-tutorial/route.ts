@@ -4,6 +4,7 @@ import { crawlDocumentation } from '@/lib/crawler';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY!,
+  baseURL: process.env.OPENAI_BASE_URL,
 });
 
 export async function POST(request: NextRequest) {
@@ -19,7 +20,7 @@ export async function POST(request: NextRequest) {
       : generateVideoScriptPrompt(tutorial, contentSample);
 
     const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
+      model: process.env.OPENAI_LLM_MODEL,
       messages: [
         { 
           role: "system", 
