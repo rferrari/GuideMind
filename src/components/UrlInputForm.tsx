@@ -92,23 +92,34 @@ export default function UrlInputForm() {
     }));
   };
 
-  const downloadIndividualTutorial = async (tutorial: TutorialScaffold, type: 'text' | 'video' = 'text') => {
-    let content: string;
-    
-    if (downloadOptions.format === 'scaffold') {
-      content = await DownloadManager.downloadScaffold(tutorial);
-    } else {
-      content = await DownloadManager.downloadFullContent(tutorial, type);
-    }
-    
-    const extension = type === 'text' ? 'md' : 'txt';
-    const prefix = downloadOptions.format === 'scaffold' ? 'scaffold' : type;
-    const filename = `${prefix}-${tutorial.title.toLowerCase().replace(/[^a-z0-9]/g, '-')}.${extension}`;
-    
-    DownloadManager.downloadFile(content, filename);
-  };
+ const downloadIndividualTutorial = async (tutorial: TutorialScaffold, type: 'text' | 'video' = 'text') => {
+  let content: string;
+  
+  if (downloadOptions.format === 'scaffold') {
+    content = await DownloadManager.downloadScaffold(tutorial);
+  } else {
+    content = await DownloadManager.downloadFullContent(tutorial, type);
+  }
+  
+  const extension = type === 'text' ? 'md' : 'txt';
+  const prefix = downloadOptions.format === 'scaffold' ? 'scaffold' : type;
+  const filename = `${prefix}-${tutorial.title.toLowerCase().replace(/[^a-z0-9]/g, '-')}.${extension}`;
+  
+  DownloadManager.downloadFile(content, filename);
+};
 
-  const downloadAllTutorials = async () => {
+const downloadAllTutorials = async () => {
+  try {
+    // Use ZIP bundle for better user experience
+    await DownloadManager.downloadZipBundle(tutorials, {
+      format: downloadOptions.format,
+      type: downloadOptions.type
+    });
+  } catch (error) {
+    console.error('Download error:', error);
+    // Fallback to individual downloads if ZIP fails
+    alert('ZIP download failed. Falling back to individual file downloads...');
+    
     // Download CSV index
     const csvContent = DownloadManager.generateCSV(tutorials);
     DownloadManager.downloadFile(csvContent, 'tutorial-scaffolds-index.csv');
@@ -125,12 +136,13 @@ export default function UrlInputForm() {
       // Small delay to prevent browser from blocking multiple downloads
       await new Promise(resolve => setTimeout(resolve, 100));
     }
-  };
+  }
+};
 
-  const downloadCSVOnly = () => {
-    const csvContent = DownloadManager.generateCSV(tutorials);
-    DownloadManager.downloadFile(csvContent, 'tutorial-scaffolds-index.csv');
-  };
+const downloadCSVOnly = () => {
+  const csvContent = DownloadManager.generateCSV(tutorials);
+  DownloadManager.downloadFile(csvContent, 'tutorial-scaffolds-index.csv');
+};
 
   const openGenerationModal = (tutorial: TutorialScaffold, type: 'text' | 'video') => {
     setSelectedTutorial(tutorial);
