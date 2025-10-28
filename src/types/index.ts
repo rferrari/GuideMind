@@ -9,6 +9,17 @@ export interface TutorialScaffold {
     max: number;
   };
   sourceUrl: string;
+  generatedContent?: {
+    text?: string;
+    video?: string;
+    lastUpdated: Date;
+  };
+}
+
+export interface DownloadOptions {
+  format: 'scaffold' | 'full';
+  type: 'text' | 'video' | 'both';
+  includeEdited: boolean;
 }
 
 export interface GeneratedTutorial {

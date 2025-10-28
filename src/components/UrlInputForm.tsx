@@ -1,9 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { TutorialScaffold } from '@/types';
+import { TutorialScaffold, DownloadOptions } from '@/types';
 import { AnimatedCard } from './AnimatedCard';
 import GenerationModal from './GenerationModal';
+import { DownloadManager } from '@/lib/download-manager';
 
 export default function UrlInputForm() {
   const [url, setUrl] = useState('');
@@ -13,6 +14,11 @@ export default function UrlInputForm() {
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedTutorial, setSelectedTutorial] = useState<TutorialScaffold | null>(null);
   const [generationType, setGenerationType] = useState<'text' | 'video'>('text');
+  const [downloadOptions, setDownloadOptions] = useState<DownloadOptions>({
+    format: 'scaffold',
+    type: 'text',
+    includeEdited: true
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -70,35 +76,66 @@ export default function UrlInputForm() {
     }
   };
 
+  const updateTutorialContent = (tutorialId: string, content: string, type: 'text' | 'video') => {
+    setTutorials(prev => prev.map(tutorial => {
+      if (tutorial.id === tutorialId) {
+        return {
+          ...tutorial,
+          generatedContent: {
+            ...tutorial.generatedContent,
+            [type]: content,
+            lastUpdated: new Date()
+          }
+        };
+      }
+      return tutorial;
+    }));
+  };
+
+  const downloadIndividualTutorial = async (tutorial: TutorialScaffold, type: 'text' | 'video' = 'text') => {
+    let content: string;
+    
+    if (downloadOptions.format === 'scaffold') {
+      content = await DownloadManager.downloadScaffold(tutorial);
+    } else {
+      content = await DownloadManager.downloadFullContent(tutorial, type);
+    }
+    
+    const extension = type === 'text' ? 'md' : 'txt';
+    const prefix = downloadOptions.format === 'scaffold' ? 'scaffold' : type;
+    const filename = `${prefix}-${tutorial.title.toLowerCase().replace(/[^a-z0-9]/g, '-')}.${extension}`;
+    
+    DownloadManager.downloadFile(content, filename);
+  };
+
+  const downloadAllTutorials = async () => {
+    // Download CSV index
+    const csvContent = DownloadManager.generateCSV(tutorials);
+    DownloadManager.downloadFile(csvContent, 'tutorial-scaffolds-index.csv');
+    
+    // Download individual tutorial files
+    for (const tutorial of tutorials) {
+      if (downloadOptions.type === 'both') {
+        await downloadIndividualTutorial(tutorial, 'text');
+        await downloadIndividualTutorial(tutorial, 'video');
+      } else {
+        await downloadIndividualTutorial(tutorial, downloadOptions.type);
+      }
+      
+      // Small delay to prevent browser from blocking multiple downloads
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+  };
+
+  const downloadCSVOnly = () => {
+    const csvContent = DownloadManager.generateCSV(tutorials);
+    DownloadManager.downloadFile(csvContent, 'tutorial-scaffolds-index.csv');
+  };
+
   const openGenerationModal = (tutorial: TutorialScaffold, type: 'text' | 'video') => {
     setSelectedTutorial(tutorial);
     setGenerationType(type);
     setModalOpen(true);
-  };
-
-  const downloadCSV = () => {
-    const headers = ['Title', 'Summary', 'Difficulty', 'Estimated Cost Min', 'Estimated Cost Max', 'Outline'];
-    const csvContent = [
-      headers.join(','),
-      ...tutorials.map(tutorial => [
-        `"${tutorial.title.replace(/"/g, '""')}"`,
-        `"${tutorial.summary.replace(/"/g, '""')}"`,
-        tutorial.difficulty,
-        tutorial.estimatedCost.min,
-        tutorial.estimatedCost.max,
-        `"${tutorial.outline.join('; ').replace(/"/g, '""')}"`
-      ].join(','))
-    ].join('\n');
-
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'tutorial-scaffolds.csv';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
   };
 
   return (
@@ -158,14 +195,71 @@ export default function UrlInputForm() {
 
       {tutorials.length > 0 && (
         <div className="space-y-6">
+          {/* Download Options Bar */}
+          <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
+            <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
+              <div>
+                <h3 className="text-lg font-semibold text-white mb-2">Download Options</h3>
+                <div className="flex flex-wrap gap-4 text-sm">
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      checked={downloadOptions.format === 'scaffold'}
+                      onChange={() => setDownloadOptions(prev => ({ ...prev, format: 'scaffold' }))}
+                      className="text-blue-600"
+                    />
+                    <span className="text-gray-300">Scaffolds Only</span>
+                  </label>
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      checked={downloadOptions.format === 'full'}
+                      onChange={() => setDownloadOptions(prev => ({ ...prev, format: 'full' }))}
+                      className="text-blue-600"
+                    />
+                    <span className="text-gray-300">Full Content</span>
+                  </label>
+                  
+                  <label className="flex items-center gap-2">
+                    <span className="text-gray-300">Type:</span>
+                    <select
+                      value={downloadOptions.type}
+                      onChange={(e) => setDownloadOptions(prev => ({ ...prev, type: e.target.value as any }))}
+                      className="bg-gray-700 border border-gray-600 text-white rounded px-2 py-1 text-sm"
+                    >
+                      <option value="text">Text Only</option>
+                      <option value="video">Video Only</option>
+                      <option value="both">Both</option>
+                    </select>
+                  </label>
+                </div>
+              </div>
+              
+              <div className="flex gap-2">
+                <button
+                  onClick={downloadCSVOnly}
+                  className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors text-sm"
+                >
+                  Download CSV Only
+                </button>
+                <button
+                  onClick={downloadAllTutorials}
+                  className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors text-sm"
+                >
+                  Download All Files
+                </button>
+              </div>
+            </div>
+            
+            <div className="mt-3 text-xs text-gray-400">
+              {downloadOptions.format === 'scaffold' 
+                ? 'Scaffolds include titles, outlines, and metadata - perfect for contributors to expand upon.'
+                : 'Full content includes AI-generated tutorials or video scripts.'}
+            </div>
+          </div>
+
           <div className="flex justify-between items-center">
             <h2 className="text-2xl font-bold text-white">Generated Tutorials ({tutorials.length})</h2>
-            <button
-              onClick={downloadCSV}
-              className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors text-sm"
-            >
-              Download CSV
-            </button>
           </div>
           
           <div className="grid gap-6">
@@ -176,16 +270,23 @@ export default function UrlInputForm() {
                     <h3 className="font-bold text-xl text-white">{tutorial.title}</h3>
                     <div className="flex gap-2">
                       <button
+                        onClick={() => downloadIndividualTutorial(tutorial, 'text')}
+                        className="bg-gray-700 text-gray-200 px-3 py-1 rounded-md hover:bg-gray-600 transition-colors text-sm"
+                        title="Download scaffold"
+                      >
+                        📥 Scaffold
+                      </button>
+                      <button
                         onClick={() => openGenerationModal(tutorial, 'text')}
                         className="bg-blue-600 text-white px-3 py-1 rounded-md hover:bg-blue-700 transition-colors text-sm"
                       >
-                        Generate Text Tutorial
+                        Generate Text
                       </button>
                       <button
                         onClick={() => openGenerationModal(tutorial, 'video')}
                         className="bg-orange-600 text-white px-3 py-1 rounded-md hover:bg-orange-700 transition-colors text-sm"
                       >
-                        Generate Video Script
+                        Generate Video
                       </button>
                     </div>
                   </div>
@@ -203,6 +304,11 @@ export default function UrlInputForm() {
                     <span className="text-gray-400 bg-gray-700 px-3 py-1 rounded-full text-sm">
                       ${tutorial.estimatedCost.min} - ${tutorial.estimatedCost.max}
                     </span>
+                    {tutorial.generatedContent && (
+                      <span className="text-blue-400 bg-blue-900/30 px-3 py-1 rounded-full text-sm">
+                        ✨ Enhanced
+                      </span>
+                    )}
                   </div>
                   
                   <div className="mt-4">
@@ -225,13 +331,17 @@ export default function UrlInputForm() {
         </div>
       )}
 
-      {/* Generation Modal */}
       <GenerationModal
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
         tutorial={selectedTutorial!}
         type={generationType}
         originalUrl={url}
+        onContentUpdate={(content) => {
+          if (selectedTutorial) {
+            updateTutorialContent(selectedTutorial.id, content, generationType);
+          }
+        }}
       />
     </div>
   );

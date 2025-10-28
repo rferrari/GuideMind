@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { TutorialScaffold } from '@/types';
-import MarkdownEditor from './MarkdownEditor';
+import MarkdownPreview from './MarkdownPreview';
 
 interface GenerationModalProps {
   isOpen: boolean;
@@ -68,18 +68,6 @@ export default function GenerationModal({
     generateTutorialContent(enhancementPrompt);
   };
 
-  const handleContentChange = (content: string) => {
-    setGeneratedContent(content);
-  };
-
-const downloadAllTutorials = async () => {
-  // Use ZIP bundle for better user experience
-  await DownloadManager.downloadZipBundle(tutorials, {
-    format: downloadOptions.format,
-    type: downloadOptions.type
-  });
-};
-
   const downloadContent = () => {
     const extension = type === 'text' ? 'md' : 'txt';
     const filename = `${tutorial.title.toLowerCase().replace(/[^a-z0-9]/g, '-')}.${extension}`;
@@ -99,7 +87,7 @@ const downloadAllTutorials = async () => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-gray-800 rounded-lg max-w-7xl w-full max-h-[95vh] overflow-hidden flex flex-col">
+      <div className="bg-gray-800 rounded-lg max-w-6xl w-full max-h-[95vh] overflow-hidden flex flex-col">
         {/* Header */}
         <div className="flex justify-between items-center p-6 border-b border-gray-700">
           <div>
@@ -109,7 +97,7 @@ const downloadAllTutorials = async () => {
             <p className="text-gray-400 text-sm mt-1">
               {isEnhancing ? 'Enhancing content...' : 
                status === 'generating' ? 'Generating content...' :
-               status === 'completed' ? 'Content ready! Edit and enhance below.' : 
+               status === 'completed' ? 'Content ready! Preview and enhance below.' : 
                'Error generating content'}
             </p>
           </div>
@@ -149,9 +137,8 @@ const downloadAllTutorials = async () => {
 
           {status === 'completed' && (
             <div className="space-y-6">
-              <MarkdownEditor 
-                content={generatedContent}
-                onContentChange={handleContentChange}
+              <MarkdownPreview 
+                content={generatedContent} 
                 onEnhance={handleEnhance}
               />
               
