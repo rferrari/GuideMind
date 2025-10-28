@@ -110,6 +110,9 @@ export default function UrlInputForm() {
 
 const downloadAllTutorials = async () => {
   try {
+    // Show loading state
+    setIsLoading(true);
+    
     // Use ZIP bundle for better user experience
     await DownloadManager.downloadZipBundle(tutorials, {
       format: downloadOptions.format,
@@ -117,25 +120,9 @@ const downloadAllTutorials = async () => {
     });
   } catch (error) {
     console.error('Download error:', error);
-    // Fallback to individual downloads if ZIP fails
-    alert('ZIP download failed. Falling back to individual file downloads...');
-    
-    // Download CSV index
-    const csvContent = DownloadManager.generateCSV(tutorials);
-    DownloadManager.downloadFile(csvContent, 'tutorial-scaffolds-index.csv');
-    
-    // Download individual tutorial files
-    for (const tutorial of tutorials) {
-      if (downloadOptions.type === 'both') {
-        await downloadIndividualTutorial(tutorial, 'text');
-        await downloadIndividualTutorial(tutorial, 'video');
-      } else {
-        await downloadIndividualTutorial(tutorial, downloadOptions.type);
-      }
-      
-      // Small delay to prevent browser from blocking multiple downloads
-      await new Promise(resolve => setTimeout(resolve, 100));
-    }
+    alert('Failed to create download bundle. Please try again.');
+  } finally {
+    setIsLoading(false);
   }
 };
 
@@ -255,11 +242,22 @@ const downloadCSVOnly = () => {
                   Download CSV Only
                 </button>
                 <button
-                  onClick={downloadAllTutorials}
-                  className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors text-sm"
-                >
-                  Download All Files
-                </button>
+  onClick={downloadAllTutorials}
+  disabled={isLoading}
+  className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors text-sm"
+>
+  {isLoading ? (
+    <span className="flex items-center gap-2">
+      <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+      </svg>
+      Generating Bundle...
+    </span>
+  ) : (
+    'Download All Files'
+  )}
+</button>
               </div>
             </div>
             
