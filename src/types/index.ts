@@ -11,6 +11,14 @@ export interface TutorialScaffold {
   sourceUrl: string;
 }
 
+export interface GeneratedTutorial {
+  id: string;
+  scaffold: TutorialScaffold;
+  type: 'text' | 'video';
+  content: string;
+  status: 'generating' | 'completed' | 'error';
+}
+
 export interface CrawlResult {
   url: string;
   title: string;
