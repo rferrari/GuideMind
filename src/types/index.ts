@@ -19,6 +19,12 @@ export interface GeneratedTutorial {
   status: 'generating' | 'completed' | 'error';
 }
 
+export interface EnhancementPrompt {
+  id: string;
+  text: string;
+  description: string;
+}
+
 export interface CrawlResult {
   url: string;
   title: string;
