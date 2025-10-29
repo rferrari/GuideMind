@@ -1,0 +1,24 @@
+{
+  "title": "Building a Hive Web3 Wallet: Authentication & Transaction Flow",
+  "summary": "Create a Web3-compatible wallet that authenticates users and sends Hive transactions securely using the latest SDKs.",
+  "difficulty": "intermediate",
+  "estimatedCost": {
+    "min": 200,
+    "max": 350
+  },
+  "outline": [
+    "Understanding Web3 Concepts on Hive",
+    "Setting Up the Wallet SDK",
+    "User Authentication Flow",
+    "Constructing & Signing Transactions",
+    "Handling Broadcast & Confirmation"
+  ],
+  "sourceUrl": "https://developers.hive.io/#introduction-web3",
+  "lastUpdated": "2025-10-29T20:21:46.409Z",
+  "hasFullContent": true,
+  "contentTypes": {
+    "text": true,
+    "video": true
+  },
+  "generatedBy": "AI API"
+}

@@ -1,0 +1,24 @@
+{
+  "title": "Getting Started with Hive Full Nodes: Setup & Basic Operations",
+  "summary": "Learn how to spin up a Hive full node, connect to the network, and perform basic read/write operations using the API.",
+  "difficulty": "beginner",
+  "estimatedCost": {
+    "min": 100,
+    "max": 200
+  },
+  "outline": [
+    "Setting Up a Full Node",
+    "Connecting via RPC",
+    "Performing Read Operations",
+    "Broadcasting Transactions",
+    "Troubleshooting Common Issues"
+  ],
+  "sourceUrl": "https://developers.hive.io/quickstart/#quickstart-hive-full-nodes",
+  "lastUpdated": "2025-10-29T20:20:35.193Z",
+  "hasFullContent": true,
+  "contentTypes": {
+    "text": true,
+    "video": true
+  },
+  "generatedBy": "AI API"
+}

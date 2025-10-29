@@ -1,0 +1,69 @@
+**Video Script: Getting Started with Foremost: A Beginner's Guide**
+
+**INTRODUCTION (0:00 - 0:45)**
+
+(0:00 - 0:05: Animated logo of the tutorial and a title slide with the tutorial title)
+
+Host: "Have you ever faced a situation where you need to recover lost files from a drive or an image? Are you a forensic analyst looking for a reliable tool to aid in your investigations? You're in the right place! In this tutorial, we'll be covering the basics of Foremost, a powerful data recovery tool that can help you recover lost files based on their headers, footers, and internal data structures. By the end of this tutorial, you'll learn how to use Foremost for forensics and incident response."
+
+**MAIN CONTENT**
+
+**Understanding Foremost Syntax (0:45 - 6:30)**
+
+(0:45 - 1:10: Screen recording of the Foremost documentation webpage)
+
+Host: "Foremost is a command-line tool that uses a configuration file or command-line switches to specify built-in file types. Let's take a look at the basic syntax of Foremost. The general syntax is: `foremost -t <type> -i <input_file> -o <output_directory>`. The `-t` option specifies the type of file you want to recover, and the `-i` option specifies the input file. The `-o` option specifies the output directory where the recovered files will be saved."
+
+(1:10 - 1:45: Code demonstration of the basic syntax)
+
+Host: "For example, if we want to recover JPEG files from an image file, the command would be: `foremost -t jpeg -i image.dd -o recovered_files`. We can also use the `-c` option to specify a configuration file."
+
+(1:45 - 2:30: Diagram illustrating the basic syntax)
+
+Host: "The basic syntax of Foremost is straightforward, but it's essential to understand the different options and their usage. Let's take a look at some key points:"
+
+Key Points:
+
+1. The `-t` option specifies the type of file you want to recover.
+2. The `-i` option specifies the input file.
+3. The `-o` option specifies the output directory.
+
+**Basic Usage Examples (6:30 - 12:00)**
+
+(6:30 - 7:15: Screen recording of a practical example using Foremost)
+
+Host: "Let's take a look at a practical example of using Foremost. We have a drive that contains a deleted JPEG file. We want to recover that file using Foremost. We'll use the `-t` option to specify JPEG files and the `-i` option to specify the input drive."
+
+(7:15 - 8:00: Code demonstration of the practical example)
+
+Host: "The command would be: `foremost -t jpeg -i /dev/sdb1 -o recovered_files`. We'll run the command and see the output. As you can see, Foremost was able to recover the deleted JPEG file."
+
+(8:00 - 9:00: Diagram illustrating the recovered file)
+
+Host: "Let's take a look at some key points from this example:"
+
+Key Points:
+
+1. We used the `-t` option to specify JPEG files.
+2. We used the `-i` option to specify the input drive.
+3. We specified the output directory using the `-o` option.
+
+**CONCLUSION (last 45 seconds)**
+
+(12:00 - 12:45: Recap of key achievements)
+
+Host: "By the end of this tutorial, you've learned the basics of Foremost, a powerful data recovery tool that can help you recover lost files based on their headers, footers, and internal data structures. You've also learned how to use Foremost for forensics and incident response."
+
+(12:45 - 13:00: Key takeaways)
+
+Host: "Here are the key takeaways from this tutorial:"
+
+Key Takeaways:
+
+1. Foremost is a command-line tool that uses a configuration file or command-line switches to specify built-in file types.
+2. The basic syntax of Foremost is `foremost -t <type> -i <input_file> -o <output_directory>`.
+3. You can use the `-t` option to specify the type of file you want to recover.
+
+(13:00 - 13:45: Call to action and next steps)
+
+Host: "Thanks for watching this tutorial! If you want to learn more about Foremost and its usage, I recommend checking out the Foremost documentation webpage. You can also practice what you've learned by using Foremost on your own devices. Don't forget to subscribe to our channel for more technical tutorials and content!"

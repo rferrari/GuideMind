@@ -1,0 +1,24 @@
+{
+  "title": "Advanced Hive API Integration: Custom Broadcasts & OPS",
+  "summary": "Deep dive into custom broadcast operations, OPS, and how to extend Hive's core functionality for advanced use cases.",
+  "difficulty": "advanced",
+  "estimatedCost": {
+    "min": 300,
+    "max": 500
+  },
+  "outline": [
+    "Reviewing the Broadcast & OPS API",
+    "Crafting Custom OPS Calls",
+    "Integrating with Third-Party Services",
+    "Optimizing Performance & Error Handling",
+    "Security Considerations"
+  ],
+  "sourceUrl": "https://developers.hive.io/quickstart/#quickstart-fetch-broadcast",
+  "lastUpdated": "2025-10-29T20:22:08.048Z",
+  "hasFullContent": true,
+  "contentTypes": {
+    "text": true,
+    "video": true
+  },
+  "generatedBy": "AI API"
+}

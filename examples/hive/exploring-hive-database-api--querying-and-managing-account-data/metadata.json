@@ -1,0 +1,24 @@
+{
+  "title": "Exploring Hive Database API: Querying and Managing Account Data",
+  "summary": "Master the Hive Database API to query account history, tags, and reputation, and manage data programmatically.",
+  "difficulty": "intermediate",
+  "estimatedCost": {
+    "min": 150,
+    "max": 250
+  },
+  "outline": [
+    "Database API Overview",
+    "Fetching Account History",
+    "Searching by Tags and Reputation",
+    "Updating Account Metadata",
+    "Best Practices for Large-Scale Queries"
+  ],
+  "sourceUrl": "https://developers.hive.io/quickstart/#quickstart-accounts",
+  "lastUpdated": "2025-10-29T20:22:29.983Z",
+  "hasFullContent": true,
+  "contentTypes": {
+    "text": true,
+    "video": true
+  },
+  "generatedBy": "AI API"
+}

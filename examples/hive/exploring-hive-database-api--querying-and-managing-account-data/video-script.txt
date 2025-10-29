@@ -1,0 +1,133 @@
+**Tutorial Title:** Exploring Hive Database API: Querying and Managing Account Data
+
+**Intro (0:00 - 0:45)**
+
+(Visual cue: Hive logo and a brief animation of a developer workflow)
+
+Voiceover: "Are you a developer looking to tap into the power of the Hive network? In this tutorial, we'll dive into the Hive Database API to query account history, tags, and reputation, and manage data programmatically. By the end of this tutorial, you'll be able to fetch account history, search by tags and reputation, update account metadata, and optimize large-scale queries."
+
+**Database API Overview (3:00 - 7:00)**
+
+(Visual cue: Diagram of the Hive network architecture, highlighting the Database API)
+
+Voiceover: "The Hive Database API provides a set of endpoints to interact with the Hive blockchain, including account history, metadata, and reputation. To get started, we'll use the `@hive-js/api` library, which provides a simple interface to the API."
+
+(Code demonstration: Importing the library and setting up authentication)
+
+```javascript
+const { DatabaseAPI } = require('@hive-js/api');
+const db = new DatabaseAPI();
+db.setApiKey('YOUR_API_KEY');
+```
+
+Key points:
+
+1. The Database API is a critical part of the Hive network, providing access to account history and metadata.
+2. The `@hive-js/api` library simplifies interactions with the API.
+3. Authentication is required to access the API.
+
+Practical example: Fetching account history
+
+```javascript
+db.get_account_history('account_name', (err, result) => {
+  console.log(result);
+});
+```
+
+**Fetching Account History (7:00 - 11:00)**
+
+(Visual cue: Code demonstration and screen recording of the API response)
+
+Voiceover: "To fetch account history, we can use the `get_account_history` method. This method takes an account name and returns a list of transactions associated with that account."
+
+(Code demonstration: Fetching account history)
+
+```javascript
+db.get_account_history('account_name', (err, result) => {
+  console.log(result);
+});
+```
+
+Key points:
+
+1. The `get_account_history` method returns a list of transactions associated with an account.
+2. The method takes an account name as a parameter.
+3. The response includes transaction IDs, block numbers, and other metadata.
+
+Practical example: Searching by tags and reputation
+
+```javascript
+db.search_tags('tags', (err, result) => {
+  console.log(result);
+});
+```
+
+**Searching by Tags and Reputation (11:00 - 15:00)**
+
+(Visual cue: Code demonstration and screen recording of the API response)
+
+Voiceover: "To search by tags and reputation, we can use the `search_tags` method. This method takes a tag string and returns a list of accounts associated with that tag."
+
+(Code demonstration: Searching by tags)
+
+```javascript
+db.search_tags('tags', (err, result) => {
+  console.log(result);
+});
+```
+
+Key points:
+
+1. The `search_tags` method returns a list of accounts associated with a tag.
+2. The method takes a tag string as a parameter.
+3. The response includes account names, reputation scores, and other metadata.
+
+**Updating Account Metadata (15:00 - 18:00)**
+
+(Visual cue: Code demonstration and screen recording of the API response)
+
+Voiceover: "To update account metadata, we can use the `update_account_metadata` method. This method takes an account name and a metadata object, and updates the metadata associated with that account."
+
+(Code demonstration: Updating account metadata)
+
+```javascript
+db.update_account_metadata('account_name', {
+  'new_metadata': 'new value'
+}, (err, result) => {
+  console.log(result);
+});
+```
+
+Key points:
+
+1. The `update_account_metadata` method updates the metadata associated with an account.
+2. The method takes an account name and a metadata object as parameters.
+3. The response includes the updated metadata.
+
+**Best Practices for Large-Scale Queries (18:00 - 20:00)**
+
+(Visual cue: Diagram of a query optimization strategy)
+
+Voiceover: "When working with large-scale queries, it's essential to optimize your queries to avoid overwhelming the API. Here are a few best practices to keep in mind."
+
+Key points:
+
+1. Use pagination to limit the number of results.
+2. Use filters to narrow down the results.
+3. Optimize your queries to reduce the number of API calls.
+
+**Conclusion (20:00 - 20:45)**
+
+(Visual cue: Recap of key points and a call to action)
+
+Voiceover: "In this tutorial, we've explored the Hive Database API and learned how to query account history, search by tags and reputation, update account metadata, and optimize large-scale queries. By mastering these skills, you'll be able to build more efficient and effective applications on the Hive network."
+
+Key takeaways:
+
+1. The Hive Database API provides access to account history and metadata.
+2. The `@hive-js/api` library simplifies interactions with the API.
+3. Best practices for large-scale queries include pagination, filtering, and optimization.
+
+Call to action: Practice exercises and next steps
+
+Voiceover: "Practice what you've learned by building a simple application that queries account history and updates account metadata. For more advanced topics, check out our tutorials on the Hive Fund and Hive Hackathons."

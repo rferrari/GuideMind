@@ -1,0 +1,92 @@
+**Video Script: Building a Hive Web3 Wallet: Authentication & Transaction Flow**
+
+**INTRODUCTION (0:00 - 0:45)**
+
+(Opening shot of a futuristic cityscape with a subtle HIVE logo)
+Narrator: "Welcome to the future of blockchain development, where Web3 technologies are revolutionizing the way we interact with decentralized systems. Are you ready to unlock the power of Hive and build a cutting-edge Web3 wallet that authenticates users and sends transactions securely?"
+
+(Visual cue: A graphic illustrating the Web3 concept)
+Narrator: "In this tutorial, we'll guide you through building a Hive Web3 wallet from scratch, leveraging the latest SDKs and APIs to create a seamless user experience. By the end of this tutorial, you'll learn how to set up the wallet SDK, implement user authentication, construct and sign transactions, and handle broadcast and confirmation."
+
+**UNDERSTANDING WEB3 CONCEPTS ON HIVE (0:45 - 6:30)**
+
+(Visual cue: A diagram illustrating the Hive blockchain architecture)
+Narrator: "Before diving into the implementation, let's understand the Web3 concepts on Hive. Hive is a decentralized social media platform that utilizes a blockchain-based architecture. It has two primary components: the blockchain and the APIs."
+
+(Visual cue: A screen recording of the Hive blockchain explorer)
+Narrator: "The blockchain is the underlying technology that stores the network's state, while the APIs provide a interface for developers to interact with the blockchain. We'll be using the Hive SDK to interact with the blockchain and APIs."
+
+**SETTING UP THE WALLET SDK (6:30 - 12:45)**
+
+(Visual cue: A code demonstration of setting up the wallet SDK)
+Narrator: "To start building our wallet, we need to set up the wallet SDK. We'll be using the Hive SDK for JavaScript. First, we'll import the necessary libraries and initialize the wallet instance."
+
+```javascript
+const { Hive, Account } = require('hive-sdk');
+const hive = new Hive('https://api.hive.blog');
+const account = new Account('your-account-key');
+```
+
+**USER AUTHENTICATION FLOW (12:45 - 19:00)**
+
+(Visual cue: A diagram illustrating the user authentication flow)
+Narrator: "Now that we have our wallet set up, let's implement the user authentication flow. We'll use the `Account` class to authenticate users and retrieve their account information."
+
+(Visual cue: A code demonstration of user authentication)
+Narrator: "To authenticate a user, we'll use the `getAccountByKey` method to retrieve the account information and verify the user's credentials."
+
+```javascript
+const account = await hive.getAccountByKey(accountKey);
+if (account) {
+  // User is authenticated
+} else {
+  // User is not authenticated
+}
+```
+
+**CONSTRUCTING & SIGNING TRANSACTIONS (19:00 - 25:30)**
+
+(Visual cue: A diagram illustrating the transaction flow)
+Narrator: "Once the user is authenticated, we can construct and sign transactions. We'll use the `Transaction` class to create a new transaction and the `signTransaction` method to sign it."
+
+(Visual cue: A code demonstration of constructing and signing transactions)
+Narrator: "To construct a transaction, we'll specify the transaction type, recipient, and amount. Then, we'll sign the transaction using the user's private key."
+
+```javascript
+const transaction = new Transaction({
+  type: 'vote',
+  recipient: 'your-recipient',
+  amount: '10.000 VOTE'
+});
+const signedTransaction = await account.signTransaction(transaction);
+```
+
+**HANDLING BROADCAST & CONFIRMATION (25:30 - 32:00)**
+
+(Visual cue: A diagram illustrating the broadcast and confirmation flow)
+Narrator: "Finally, we'll handle the broadcast and confirmation of the transaction. We'll use the `broadcast` method to send the transaction to the network and the `getTransactionStatus` method to retrieve the transaction status."
+
+(Visual cue: A code demonstration of handling broadcast and confirmation)
+Narrator: "To handle the broadcast and confirmation, we'll listen for the `tx` event and update the transaction status accordingly."
+
+```javascript
+hive.on('tx', (tx) => {
+  if (tx.id === signedTransaction.id) {
+    // Transaction is confirmed
+  }
+});
+```
+
+**CONCLUSION (last 45 seconds)**
+
+ Recap: "By following this tutorial, you've successfully built a Hive Web3 wallet that authenticates users and sends transactions securely. You've learned how to set up the wallet SDK, implement user authentication, construct and sign transactions, and handle broadcast and confirmation."
+
+ Key takeaways:
+
+1. Understand the Web3 concepts on Hive and the importance of using the latest SDKs and APIs.
+2. Set up the wallet SDK and initialize the wallet instance.
+3. Implement user authentication using the `Account` class and the `getAccountByKey` method.
+
+ Call to action: "Practice building your own Hive Web3 wallet by experimenting with different transaction types and recipient addresses. Join the Hive community to learn more about Web3 development and share your projects with others."
+
+ Next steps: "Advanced topics to explore: integrating Hive with other blockchain networks, using advanced transaction types, and optimizing wallet performance."

@@ -1,0 +1,22 @@
+{
+  "title": "Mastering Foremost: Advanced Techniques for Forensic Investigators",
+  "summary": "Take your Foremost skills to the next level by learning advanced techniques for data recovery and analysis.",
+  "difficulty": "advanced",
+  "estimatedCost": {
+    "min": 300,
+    "max": 500
+  },
+  "outline": [
+    "Advanced Syntax and Options",
+    "Using Foremost with Other Tools",
+    "Case Studies and Real-World Applications"
+  ],
+  "sourceUrl": "https://www.kali.org/tools/foremost/#foremost-1",
+  "lastUpdated": "2025-10-29T20:43:49.480Z",
+  "hasFullContent": true,
+  "contentTypes": {
+    "text": true,
+    "video": true
+  },
+  "generatedBy": "AI API"
+}

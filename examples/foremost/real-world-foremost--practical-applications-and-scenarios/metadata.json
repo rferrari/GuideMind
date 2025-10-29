@@ -1,0 +1,22 @@
+{
+  "title": "Real-World Foremost: Practical Applications and Scenarios",
+  "summary": "Learn how to apply Foremost in real-world scenarios, including incident response, forensics, and security investigations.",
+  "difficulty": "intermediate",
+  "estimatedCost": {
+    "min": 250,
+    "max": 450
+  },
+  "outline": [
+    "Real-World Examples and Case Studies",
+    "Best Practices for Data Recovery and Analysis",
+    "Common Challenges and Solutions"
+  ],
+  "sourceUrl": "https://www.kali.org/tools/foremost/#offsec-courses",
+  "lastUpdated": "2025-10-29T20:44:11.187Z",
+  "hasFullContent": true,
+  "contentTypes": {
+    "text": true,
+    "video": true
+  },
+  "generatedBy": "AI API"
+}

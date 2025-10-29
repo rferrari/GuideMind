@@ -1,0 +1,80 @@
+**Tutorial Title:** Getting Started with Hive Full Nodes: Setup & Basic Operations
+
+**Intro (0:00 - 0:45)**
+
+(Opening shot of a terminal or command line)
+
+Host: "Are you ready to take your Hive Web3 development skills to the next level? Let's spin up a Hive full node and unlock the power of decentralized data storage. In this tutorial, we'll cover the basics of setting up a full node, connecting via RPC, performing read and write operations, and troubleshooting common issues. By the end of this tutorial, you'll be able to set up a full node, connect to the network, and perform basic operations using the API."
+
+**Section 1: Setting Up a Full Node (0:45 - 5:30)**
+
+(Visual cue: Screen recording of a terminal or command line)
+
+Host: "Let's start by setting up a full node. First, you'll need to download the Hive node software from the official Hive repository. For this tutorial, we'll be using the Docker container. You can find the Docker image on Docker Hub."
+
+(Codemonstration: Installing the Hive node software using Docker)
+
+Host: "To install the node, run the following command: `docker run -d --name hive-node -p 8090:8090 hive/hive:latest`. This will download the image and start the container."
+
+**Section 2: Connecting via RPC (5:30 - 9:00)**
+
+(Visual cue: Screen recording of a terminal or command line)
+
+Host: "Once the node is up and running, you'll need to connect to it using the RPC (Remote Procedure Call) protocol. You can do this by using a tool like `curl` or a programming library like `hive-rpc`."
+
+(Codemonstration: Connecting to the node using `curl`)
+
+Host: "To connect to the node using `curl`, run the following command: `curl -X POST -H 'Content-Type: application/json' -d '{"jsonrpc":"2.0","method":"get_account_history","params":["your_account_name"],"id":1}' http://localhost:8090/v1/api`. This will send a request to the node to retrieve the account history for the specified account."
+
+**Section 3: Performing Read Operations (9:00 - 12:30)**
+
+(Visual cue: Code demonstration using a programming library)
+
+Host: "Now that we're connected to the node, let's perform some read operations using the API. We can use the `hive-rpc` library to make requests to the node."
+
+(Codemonstration: Performing a read operation using `hive-rpc`)
+
+Host: "To get the account balance for a specific account, we can use the `get_account()` method. Here's an example: `balance = rpc.get_account(account_name)['balance']`. This will return the account balance as a string."
+
+**Section 4: Broadcasting Transactions (12:30 - 16:00)**
+
+(Visual cue: Code demonstration using a programming library)
+
+Host: "Now that we can perform read operations, let's move on to broadcasting transactions. We can use the `hive-rpc` library to create and broadcast transactions."
+
+(Codemonstration: Broadcasting a transaction using `hive-rpc`)
+
+Host: "To broadcast a transaction, we need to create a transaction object and pass it to the `broadcast_transaction()` method. Here's an example: `transaction = rpc.create_transaction(account_name, 'your_account_password', 'your_account_name', 'your_wallet_key')`. This will create a new transaction object with the specified account and wallet key. We can then broadcast the transaction using `rpc.broadcast_transaction(transaction)`."
+
+**Section 5: Troubleshooting Common Issues (16:00 - 18:30)**
+
+(Visual cue: Troubleshooting guide)
+
+Host: "As we've seen, setting up and using a Hive full node can be complex. Let's go over some common issues and how to troubleshoot them."
+
+(Troubleshooting guide)
+
+Host: "Common issues include node not starting, node not syncing, and RPC connection issues. To troubleshoot these issues, you can refer to the Hive documentation and online forums for solutions and workarounds."
+
+**Conclusion (last 45 seconds)**
+
+(Recap of key achievements)
+
+Host: "That's it for this tutorial on setting up and using a Hive full node. You should now be able to set up a full node, connect to the network, and perform basic operations using the API."
+
+(Key takeaways)
+
+Host: "Key takeaways from this tutorial include:
+
+* Setting up a Hive full node using Docker
+* Connecting to the node using RPC
+* Performing read and write operations using the API
+* Troubleshooting common issues"
+
+(Call to action)
+
+Host: "Next steps include exploring more advanced topics, such as using the API to create custom applications and integrating with other services. Practice your new skills by experimenting with different API methods and scenarios."
+
+(Next steps)
+
+Host: "For more information on Hive development, check out the official Hive documentation and online forums. Join the Hive community to connect with other developers and get support for your projects."

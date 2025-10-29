@@ -1,0 +1,22 @@
+{
+  "title": "Getting Started with Foremost: A Beginner's Guide",
+  "summary": "Learn the basics of Foremost, a data recovery tool, and how to use it for forensics and incident response.",
+  "difficulty": "beginner",
+  "estimatedCost": {
+    "min": 200,
+    "max": 400
+  },
+  "outline": [
+    "Introduction to Foremost",
+    "Understanding Foremost Syntax",
+    "Basic Usage Examples"
+  ],
+  "sourceUrl": "https://www.kali.org/tools/foremost/#tool-documentation",
+  "lastUpdated": "2025-10-29T20:43:28.179Z",
+  "hasFullContent": true,
+  "contentTypes": {
+    "text": true,
+    "video": true
+  },
+  "generatedBy": "AI API"
+}
