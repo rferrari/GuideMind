@@ -273,6 +273,83 @@ If you have any questions or need help:
 
 ---
 
-**Transform your documentation into engaging tutorials with intelligent AI-powered content generation!** 🚀
+**Transform your documentation into engaging tutorials with intelligent AI-powered content generation!**
 
 *Built with ❤️ for the ns.com community*
+
+
+
+---
+
+## 💡 **Enhancements Ideas**
+
+
+**Goal:** Improve robustness, scalability, and extraction quality of the documentation crawler and tutorial generation pipeline.
+
+---
+
+#### Architecture & Structure
+
+* [ ] Refactor crawler into modular files (`core`, `extractors`, `filters`, `utils`)
+* [ ] Add unit tests for URL validation, extraction, and link filtering
+
+---
+
+#### Crawling Improvements
+
+* [ ] Add request throttling / rate limiting (e.g., [`p-queue`](https://www.npmjs.com/package/p-queue))
+* [ ] Respect `robots.txt` rules (`robots-parser`)
+* [ ] Improve content extraction (remove `nav`, `footer`, `header`, `aside`)
+* [ ] Integrate [`@mozilla/readability`](https://www.npmjs.com/package/@mozilla/readability) for cleaner text extraction
+* [ ] Add link scoring and prioritization (prefer `/docs/`, `/guide/`, `/tutorial/`)
+* [ ] Implement async recursive crawling with depth + concurrency control
+
+---
+
+#### Content Processing
+
+* [ ] Implement **semantic chunking** (group text by heading hierarchy for LLM)
+* [ ] Normalize encoding (handle non-UTF8 pages safely)
+* [ ] Extract metadata (`meta[name="description"]`, `keywords`, `og:title`)
+* [ ] Improve deduplication and text block filtering logic
+
+---
+
+#### Prompt & Generation Logic
+
+* [ ] Auto-summarize long crawled docs before sending to LLM
+* [ ] Dynamically choose LLM model (e.g., `gpt-4-turbo` for large inputs, `gpt-4o-mini` for short)
+* [ ] Add adaptive prompt templates per tutorial type (text, video, short-form)
+* [ ] Add support for structured prompt logging (track tokens & content size)
+
+---
+
+#### Logging, Error Handling & Monitoring
+
+* [ ] Replace `console.log` with structured logger (`pino` or `winston`)
+* [ ] Categorize errors clearly (network / parsing / OpenAI / validation)
+* [ ] Add retry with exponential backoff for transient HTTP errors
+* [ ] Include crawl performance metrics (time, chunk count, links parsed)
+
+---
+
+#### Advanced Features
+
+* [ ] Add caching (Redis or local JSON store) to avoid re-crawling same URLs
+* [ ] Support `sitemap.xml` discovery for documentation domains
+* [ ] Enable parallel summarization for multi-page docs
+* [ ] Add embeddings + vector retrieval for “Ask the Docs” functionality
+* [ ] Introduce plugin system for framework-specific docs (e.g., React, Next.js, Hive API)
+
+---
+
+#### Polish & UX
+
+* [ ] Normalize URLs (strip trailing slashes, ignore JS or anchor-only links)
+* [ ] Add configurable `CRAWLER_USER_AGENT` in `.env`
+* [ ] Clean up logs and remove verbose console output in production
+* [ ] Add fallback rules when URLs fail validation or return 404
+* [ ] Improve UX feedback during crawl (progress logs, visual indicators)
+
+---
+
