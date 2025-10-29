@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { OpenAI } from 'openai';
-import { crawlDocumentation } from '@/lib/crawler';
+import { crawlDocumentation, validateUrl } from '@/lib/crawler';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY!,
@@ -156,7 +156,7 @@ function generateVideoScriptPrompt(tutorial: any, contentSample: string, usedFal
     : "";
 
   return `
-Create a video script for a tutorial based on this outline and documentation.
+Create a detailed, engaging video script for a technical tutorial based on this outline and documentation.
 
 Tutorial Title: ${tutorial.title}
 Summary: ${tutorial.summary}
@@ -165,37 +165,37 @@ Outline: ${tutorial.outline.join(' -> ')}
 
 ${urlNotice}
 
-Documentation Content:
+DOCUMENTATION CONTENT TO DRAW FROM:
 ${contentSample}
 
-Create a video script with:
-- Scene descriptions and visual cues
-- Narration/dialogue
-- Timing estimates
-- On-screen text suggestions
-- Transitions between sections
-- Call-to-action at the end
+Create a professional video script with:
 
-Make it engaging, visual, and suitable for the ${tutorial.difficulty} level. Include time markers and keep it around 5-10 minutes total.
-`;
-}
+INTRODUCTION (0:00 - 0:45)
+- Hook: Create an engaging opening question or statement
+- What we'll cover: Brief overview of the tutorial value
+- What you'll learn: Specific, actionable outcomes
 
-function generateEnhancementPrompt(existingContent: string, enhancementPrompt: string, type: string): string {
-  return `
-Please enhance the following ${type === 'text' ? 'tutorial content' : 'video script'} based on the user's request.
+MAIN CONTENT (Follow the outline sections)
+For EACH outline section, include:
+- Visual cues: Specific screen recordings, code demonstrations, diagrams
+- Narration: Detailed, technical explanations with code examples
+- Key points: 2-3 specific technical insights from the documentation
+- Practical example: Real code snippets or workflow demonstrations
+- Transition: Natural segue to next section
 
-USER'S ENHANCEMENT REQUEST: ${enhancementPrompt}
+CONCLUSION (last 45 seconds)
+- Recap: Summarize key technical achievements
+- Key takeaways: 3 main technical points
+- Call to action: Specific next steps or practice exercises
+- Next steps: Related advanced topics
 
-EXISTING CONTENT:
-${existingContent}
+PRODUCTION NOTES:
+- Target audience: ${tutorial.difficulty} level developers
+- Include specific Hive API calls and code examples
+- Add timings for each section
+- Suggest visual elements (code editors, blockchain explorers, diagrams)
 
-Please apply the requested enhancements while maintaining:
-- The core structure and information
-- Technical accuracy
-- Completeness of the content
-- Appropriate format (${type === 'text' ? 'Markdown' : 'script format'})
-
-Return the enhanced content in the same format as the original.
+Make it technical, specific, and draw concrete examples from the documentation content.
 `;
 }
 

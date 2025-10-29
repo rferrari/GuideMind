@@ -1,6 +1,99 @@
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 
+export interface CrawledPage {
+  url: string;
+  title: string;
+  content: string[];
+  links: string[];
+}
+
+export async function crawlDocumentationWithLinks(baseUrl: string): Promise<CrawledPage> {
+  // Validate URL
+  if (!baseUrl || typeof baseUrl !== 'string') {
+    console.error('Invalid URL provided to crawler:', baseUrl);
+    return { url: baseUrl, title: '', content: [], links: [] };
+  }
+
+  try {
+    // Ensure URL has protocol
+    let urlToCrawl = baseUrl;
+    if (!urlToCrawl.startsWith('http://') && !urlToCrawl.startsWith('https://')) {
+      urlToCrawl = `https://${urlToCrawl}`;
+    }
+
+    console.log('Crawling URL with links:', urlToCrawl);
+    
+    const response = await axios.get(urlToCrawl, {
+      timeout: 10000,
+      headers: {
+        'User-Agent': 'TutorialGenerator/1.0'
+      },
+      validateStatus: function (status) {
+        return status >= 200 && status < 400;
+      }
+    });
+    
+    const $ = cheerio.load(response.data);
+    const content: string[] = [];
+    const links: string[] = [];
+    
+    // Extract page title
+    const title = $('title').text() || $('h1').first().text() || 'Untitled';
+    
+    // Extract meaningful content
+    const selectors = [
+      'h1', 'h2', 'h3', 
+      'p', 'li', 
+      '.content', '.documentation', '#main', 'main', 'article'
+    ];
+    
+    $(selectors.join(', ')).each((_, element) => {
+      const text = $(element).text()
+        .trim()
+        .replace(/\s+/g, ' ')
+        .replace(/\[\d+\]/g, '');
+      
+      if (text && text.length > 20 && !isNavigation(text)) {
+        content.push(text);
+      }
+    });
+    
+    // Extract all internal links
+    $('a[href]').each((_, element) => {
+      const href = $(element).attr('href');
+      if (href) {
+        try {
+          const absoluteUrl = new URL(href, urlToCrawl).toString();
+          // Only include internal links from same domain
+          if (absoluteUrl.startsWith(urlToCrawl)) {
+            links.push(absoluteUrl);
+          }
+        } catch (e) {
+          // Ignore invalid URLs
+        }
+      }
+    });
+    
+    // Remove duplicates
+    const uniqueContent = [...new Set(content)].slice(0, 50);
+    const uniqueLinks = [...new Set(links)].slice(0, 20); // Limit to top 20 links
+    
+    console.log(`Crawled ${uniqueContent.length} content chunks and ${uniqueLinks.length} links from ${urlToCrawl}`);
+    
+    return {
+      url: urlToCrawl,
+      title,
+      content: uniqueContent,
+      links: uniqueLinks
+    };
+    
+  } catch (error: any) {
+    console.error('Crawling with links failed for URL:', baseUrl, error.message);
+    return { url: baseUrl, title: '', content: [], links: [] };
+  }
+}
+
 // Enhanced crawler (optional - for future improvement)
 export async function crawlMultiplePages(baseUrl: string, maxPages: number = 5): Promise<string[]> {
   const visited = new Set<string>();

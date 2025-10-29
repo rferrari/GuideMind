@@ -1,34 +1,71 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { crawlDocumentation } from '@/lib/crawler';
+import { crawlDocumentationWithLinks } from '@/lib/crawler';
 import { generateTutorialIdeas } from '@/lib/ai-generator';
 
 export async function POST(request: NextRequest) {
   try {
-    const { url } = await request.json();
+    const { url, regenerate } = await request.json();
     
     if (!url) {
       return NextResponse.json({ error: 'URL is required' }, { status: 400 });
     }
 
-    console.log('Crawling:', url);
-    const content = await crawlDocumentation(url);
+    console.log('Crawling with links:', url);
     
-    if (content.length === 0) {
+    // Use the enhanced crawler that extracts links
+    const crawledData = await crawlDocumentationWithLinks(url);
+    
+    if (crawledData.content.length === 0) {
       return NextResponse.json({ error: 'No content found at the provided URL' }, { status: 400 });
     }
 
-    console.log('Generating tutorials with AI...');
-    const tutorials = await generateTutorialIdeas(content);
+    console.log('Generating tutorials with AI using real links...');
+    const tutorials = await generateTutorialIdeas(crawledData);
     
     return NextResponse.json({ 
       tutorials,
-      contentSamples: content.slice(0, 3),
-      totalPagesFound: content.length 
+      crawledData: {
+        mainUrl: crawledData.url,
+        title: crawledData.title,
+        contentSamples: crawledData.content.slice(0, 3),
+        totalLinks: crawledData.links.length,
+        totalContent: crawledData.content.length
+      }
     });
   } catch (error) {
     console.error('API Error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
+
+// export async function POST(request: NextRequest) {
+//   try {
+//     const { url } = await request.json();
+    
+//     if (!url) {
+//       return NextResponse.json({ error: 'URL is required' }, { status: 400 });
+//     }
+
+//     console.log('Crawling:', url);
+//     const content = await crawlDocumentation(url);
+    
+//     if (content.length === 0) {
+//       return NextResponse.json({ error: 'No content found at the provided URL' }, { status: 400 });
+//     }
+
+//     console.log('Generating tutorials with AI...');
+//     const tutorials = await generateTutorialIdeas(content);
+    
+//     return NextResponse.json({ 
+//       tutorials,
+//       contentSamples: content.slice(0, 3),
+//       totalPagesFound: content.length 
+//     });
+//   } catch (error) {
+//     console.error('API Error:', error);
+//     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+//   }
+// }
 
 export const maxDuration = 60; // 60 seconds timeout for Vercel

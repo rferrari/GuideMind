@@ -1,5 +1,6 @@
 import { OpenAI } from 'openai';
 import { TutorialScaffold } from '@/types';
+import { CrawledPage } from './crawler';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY!,
@@ -40,14 +41,80 @@ function parseAIResponse(response: string): any {
   throw new Error('All parsing attempts failed');
 }
 
-export async function generateTutorialIdeas(content: string[]): Promise<TutorialScaffold[]> {
-  const contentSample = content.slice(0, 5).join('\n\n');
+// export async function generateTutorialIdeas(content: string[]): Promise<TutorialScaffold[]> {
+//   const contentSample = content.slice(0, 5).join('\n\n');
+  
+//   const prompt = `
+// You are an expert technical content strategist. Analyze this documentation content and suggest 3-5 tutorial ideas.
+
+// DOCUMENTATION CONTENT:
+// ${contentSample}
+
+// Generate tutorial scaffolds with:
+// - Clear, action-oriented titles
+// - Brief summaries that explain the value
+// - Logical learning progression in the outline
+// - Appropriate difficulty level (beginner/intermediate/advanced)
+// - Realistic cost estimates for tutorial creation ($100-500 range)
+// - Specific source URLs from the documentation that are most relevant to each tutorial
+
+// Respond with valid JSON only:
+// {
+//   "tutorials": [
+//     {
+//       "id": "unique-id",
+//       "title": "Tutorial Title",
+//       "summary": "Brief description",
+//       "outline": ["Section 1", "Section 2", "Section 3"],
+//       "difficulty": "beginner|intermediate|advanced",
+//       "estimatedCost": {"min": 100, "max": 300},
+//       "sourceUrl": "https://specific-docs-page.com/relevant-section"
+//     }
+//   ]
+// }
+// `;
+
+//   try {
+//     const completion = await openai.chat.completions.create({
+//       model: process.env.OPENAI_LLM_MODEL,
+//       messages: [
+//         { 
+//           role: "system", 
+//           content: "You are a technical content expert. Respond with ONLY valid JSON, no other text." 
+//         },
+//         { role: "user", content: prompt }
+//       ],
+//       temperature: 0.7,
+//       max_tokens: 2000,
+//       response_format: { type: "json_object" } // Force JSON mode if available
+//     });
+
+//     const response = completion.choices[0]?.message?.content;
+//     if (!response) throw new Error('No response from AI');
+
+//     const parsed = parseAIResponse(response);
+//     return parsed.tutorials;
+//   } catch (error) {
+//     console.error('AI Generation error:', error);
+//     return getFallbackTutorials();
+//   }
+// }
+
+export async function generateTutorialIdeas(crawledData: CrawledPage): Promise<TutorialScaffold[]> {
+  const contentSample = crawledData.content.slice(0, 5).join('\n\n');
+  const linksSample = crawledData.links.slice(0, 10).join('\n');
   
   const prompt = `
 You are an expert technical content strategist. Analyze this documentation content and suggest 3-5 tutorial ideas.
 
+MAIN DOCUMENTATION PAGE: ${crawledData.title}
+URL: ${crawledData.url}
+
 DOCUMENTATION CONTENT:
 ${contentSample}
+
+AVAILABLE DOCUMENTATION LINKS (use these for sourceUrl):
+${linksSample}
 
 Generate tutorial scaffolds with:
 - Clear, action-oriented titles
@@ -55,7 +122,7 @@ Generate tutorial scaffolds with:
 - Logical learning progression in the outline
 - Appropriate difficulty level (beginner/intermediate/advanced)
 - Realistic cost estimates for tutorial creation ($100-500 range)
-- Specific source URLs from the documentation that are most relevant to each tutorial
+- sourceUrl MUST be one of the available links above or the main URL
 
 Respond with valid JSON only:
 {
@@ -67,7 +134,7 @@ Respond with valid JSON only:
       "outline": ["Section 1", "Section 2", "Section 3"],
       "difficulty": "beginner|intermediate|advanced",
       "estimatedCost": {"min": 100, "max": 300},
-      "sourceUrl": "https://specific-docs-page.com/relevant-section"
+      "sourceUrl": "https://real-existing-url-from-the-list.com/page"
     }
   ]
 }
@@ -75,29 +142,41 @@ Respond with valid JSON only:
 
   try {
     const completion = await openai.chat.completions.create({
-      model: process.env.OPENAI_LLM_MODEL,
+      model: process.env.OPENAI_LLM_MODEL || "gpt-3.5-turbo",
       messages: [
         { 
           role: "system", 
-          content: "You are a technical content expert. Respond with ONLY valid JSON, no other text." 
+          content: "You are a technical content expert. Always respond with valid JSON. Only use URLs from the provided list." 
         },
         { role: "user", content: prompt }
       ],
       temperature: 0.7,
       max_tokens: 2000,
-      response_format: { type: "json_object" } // Force JSON mode if available
     });
 
     const response = completion.choices[0]?.message?.content;
     if (!response) throw new Error('No response from AI');
 
-    const parsed = parseAIResponse(response);
-    return parsed.tutorials;
+    const cleanedResponse = cleanJsonResponse(response);
+    const parsed = JSON.parse(cleanedResponse);
+    
+    // Validate that sourceUrls are from the allowed list
+    const allowedUrls = [crawledData.url, ...crawledData.links];
+    const validatedTutorials = parsed.tutorials.map((tutorial: any) => {
+      if (!allowedUrls.includes(tutorial.sourceUrl)) {
+        console.warn(`AI used invalid URL: ${tutorial.sourceUrl}, falling back to main URL`);
+        tutorial.sourceUrl = crawledData.url;
+      }
+      return tutorial;
+    });
+    
+    return validatedTutorials;
   } catch (error) {
     console.error('AI Generation error:', error);
-    return getFallbackTutorials();
+    return getFallbackTutorials(crawledData.url);
   }
 }
+
 
 function cleanJsonResponse(response: string): string {
   console.log('Raw AI response:', response);
@@ -123,16 +202,31 @@ function cleanJsonResponse(response: string): string {
   return cleaned;
 }
 
-function getFallbackTutorials(): TutorialScaffold[] {
+// function getFallbackTutorials(): TutorialScaffold[] {
+//   return [
+//     {
+//       id: 'fallback-1',
+//       title: 'Understanding Basic Concepts',
+//       summary: 'Learn the fundamental concepts from this documentation',
+//       outline: ['Introduction', 'Core Concepts', 'Practical Examples', 'Next Steps'],
+//       difficulty: 'beginner',
+//       estimatedCost: { min: 150, max: 350 },
+//       sourceUrl: 'https://docs.github.com/en'
+//     }
+//   ];
+// }
+
+
+function getFallbackTutorials(mainUrl: string): TutorialScaffold[] {
   return [
     {
       id: 'fallback-1',
-      title: 'Understanding Basic Concepts',
+      title: 'Getting Started Guide',
       summary: 'Learn the fundamental concepts from this documentation',
       outline: ['Introduction', 'Core Concepts', 'Practical Examples', 'Next Steps'],
       difficulty: 'beginner',
       estimatedCost: { min: 150, max: 350 },
-      sourceUrl: 'https://docs.github.com/en'
+      sourceUrl: mainUrl
     }
   ];
 }
