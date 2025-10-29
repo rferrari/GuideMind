@@ -331,8 +331,8 @@ export default function UrlInputForm() {
                       onChange={(e) => setDownloadOptions(prev => ({ ...prev, type: e.target.value as any }))}
                       className="bg-gray-700 border border-gray-600 text-white rounded px-2 py-1 text-sm"
                     >
-                      <option value="text">Text Only</option>
-                      <option value="video">Video Only</option>
+                      <option value="text">Text Tutorial Only</option>
+                      <option value="video">Video Script Only</option>
                       <option value="both">Both</option>
                     </select>
                   </label>
@@ -374,7 +374,7 @@ export default function UrlInputForm() {
           </div>
 
           <div className="flex justify-between items-center">
-            <h2 className="text-2xl font-bold text-white">Generated Tutorials ({tutorials.length})</h2>
+            <h2 className="text-2xl font-bold text-white">{tutorials.length} Tutorials Ideas Generated</h2>
           </div>
 
           <div className="grid gap-6">

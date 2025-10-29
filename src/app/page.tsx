@@ -27,6 +27,29 @@ export default function Home() {
           <span className="bg-gray-800 px-3 py-1 rounded-md">https://console.groq.com/docs/overview</span>
         </div>
       </div>
+
+      {/* Footer with attribution */}
+      <footer className="mt-16 pt-8 border-t border-gray-800 text-center">
+        <div className="text-gray-500 text-sm">
+          <p className="mb-2">
+            Built for the{' '}
+            <a
+              href="https://ns.com/earn/tutorial-generator"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-400 hover:text-blue-300 underline transition-colors"
+            >
+              Tutorial Generator Competition
+            </a>{' '}
+            on ns.com
+          </p>
+          <p className="text-xs text-gray-600 max-w-md mx-auto">
+            This project was created as an entry for an Earn competition.
+            Follow the link to learn more and submit your own projects!
+          </p>
+        </div>
+      </footer>
+
     </main>
   );
 }

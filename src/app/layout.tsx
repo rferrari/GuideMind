@@ -5,8 +5,8 @@ import './globals.css'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Tutorial Generator',
-  description: 'Generate tutorial scaffolds from documentation',
+  title: 'GuideMind',
+  description: 'AI that understands docs and teaches them back',
 }
 
 export default function RootLayout({
