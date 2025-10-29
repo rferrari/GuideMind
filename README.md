@@ -1,15 +1,11 @@
-Absolutely! Let me update the README with this important information about the intelligent crawling strategy.
-
-## Updated README.md
-
-```markdown
 # GuideMind — AI that understands docs and teaches them back.
 
-A powerful AI-powered tool that transforms documentation sites into ready-to-create tutorial scaffolds. Generate tutorial ideas, outlines, and complete content from any documentation with a single click.
+A AI-powered tool that transforms documentation sites into ready-to-create tutorial scaffolds. Generate tutorial ideas, outlines, and complete content from any documentation with few clicks.
 
-![Tutorial Generator](https://img.shields.io/badge/Next.js-14-black?style=for-the-badge&logo=next.js)
+![GuideMind](https://img.shields.io/badge/Next.js-14-black?style=for-the-badge&logo=next.js)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?style=for-the-badge&logo=typescript)
 ![AI Powered](https://img.shields.io/badge/AI-Powered-orange?style=for-the-badge&logo=openai)
+![AI Powered](https://img.shields.io/badge/AI-Powered-orange?style=for-the-badge&logo=groq)
 
 ## 🚀 Live Demo
 
@@ -267,14 +263,3 @@ If you have any questions or need help:
 **Transform your documentation into engaging tutorials with intelligent AI-powered content generation!** 🚀
 
 *Built with ❤️ for the developer community*
-```
-
-## Key Additions:
-
-1. **New "Intelligent Crawling Strategy" section** with clear diagrams showing the two-phase approach
-2. **Updated Features list** highlighting the targeted content creation
-3. **Enhanced "How to Use" section** explaining the specific URL benefits
-4. **Updated Project Scope** emphasizing the intelligent URL discovery
-5. **Clear visual flow** showing how the system moves from main URL to specific documentation pages
-
-This README now clearly communicates the sophisticated approach your tool takes to ensure high-quality, relevant tutorial generation from documentation!
