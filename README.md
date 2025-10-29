@@ -8,7 +8,7 @@ A AI-powered tool that transforms documentation sites into ready-to-create tutor
 
 ## 🚀 Live Demo
 
-[View Live Application at https://guide-mind.vercel.app/](https://guide-mind.vercel.app/)
+<a href="https://guide-mind.vercel.app/" target="_blank">View Live Application</a>
 
 ## ✨ Features
 
