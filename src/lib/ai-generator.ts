@@ -55,18 +55,19 @@ Generate tutorial scaffolds with:
 - Logical learning progression in the outline
 - Appropriate difficulty level (beginner/intermediate/advanced)
 - Realistic cost estimates for tutorial creation ($100-500 range)
+- Specific source URLs from the documentation that are most relevant to each tutorial
 
-Respond with valid JSON only, no additional text or markdown formatting:
+Respond with valid JSON only:
 {
   "tutorials": [
     {
-      "id": "unique-id-1",
+      "id": "unique-id",
       "title": "Tutorial Title",
       "summary": "Brief description",
       "outline": ["Section 1", "Section 2", "Section 3"],
-      "difficulty": "beginner",
+      "difficulty": "beginner|intermediate|advanced",
       "estimatedCost": {"min": 100, "max": 300},
-      "sourceUrl": "https://docs.github.com/en"
+      "sourceUrl": "https://specific-docs-page.com/relevant-section"
     }
   ]
 }

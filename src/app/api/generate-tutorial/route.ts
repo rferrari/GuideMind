@@ -11,18 +11,39 @@ export async function POST(request: NextRequest) {
   try {
     const { tutorial, type, originalUrl, enhancementPrompt, existingContent } = await request.json();
     
+    console.log('Generate tutorial request:', { 
+      tutorialTitle: tutorial?.title, 
+      type, 
+      originalUrl,
+      tutorialSourceUrl: tutorial?.sourceUrl,
+      hasEnhancement: !!enhancementPrompt,
+      hasExistingContent: !!existingContent 
+    });
+
     let contentSample = '';
+    
+    // Only crawl for initial generation, not for enhancements
     if (!enhancementPrompt) {
-      // Only crawl for initial generation, not for enhancements
-      const content = await crawlDocumentation(originalUrl);
-      contentSample = content.slice(0, 10).join('\n\n');
+      // Prefer the tutorial's specific source URL, fallback to original URL
+      const urlToCrawl = tutorial?.sourceUrl || originalUrl;
+      
+      if (urlToCrawl) {
+        console.log('Crawling documentation from:', urlToCrawl);
+        try {
+          const content = await crawlDocumentation(urlToCrawl);
+          contentSample = content.slice(0, 10).join('\n\n');
+          console.log(`Crawled ${content.length} content chunks from ${urlToCrawl}`);
+        } catch (crawlError) {
+          console.error('Crawling failed, continuing without fresh content:', crawlError);
+          // Continue without fresh content - we'll use the tutorial outline
+        }
+      } else {
+        console.log('No URL available for crawling');
+      }
+    } else {
+      console.log('Enhancement request, skipping crawl');
     }
 
-    const prompt = enhancementPrompt 
-      ? generateEnhancementPrompt(existingContent, enhancementPrompt, type)
-      : type === 'text' 
-        ? generateTextTutorialPrompt(tutorial, contentSample)
-        : generateVideoScriptPrompt(tutorial, contentSample);
 
     const completion = await openai.chat.completions.create({
       model: process.env.OPENAI_LLM_MODEL,
