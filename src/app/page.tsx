@@ -5,11 +5,15 @@ export default function Home() {
     <main className="container mx-auto p-6 max-w-4xl">
       <div className="text-center mb-8">
         <h1 className="text-4xl font-bold text-white mb-4">
-          Tutorial Generator
+          GuideMind
         </h1>
         <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-          Transform documentation into ready-to-create tutorial scaffolds with AI. 
-          Generate outlines, estimate costs, and kickstart your content creation.
+        AI that understands docs and teaches them back.
+        </p>
+        <br />
+        <p className="text-gray-400 text-lg max-w-2xl mx-auto">
+          Transform documentation into ready to create tutorial with AI. 
+          Generate outlines, estimate Task Payouts rewards, and kickstart your content creation.
         </p>
       </div>
       

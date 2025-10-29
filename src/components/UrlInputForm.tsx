@@ -1,12 +1,15 @@
 'use client';
 
 import { useState } from 'react';
+import ProgressModal from './ProgressModal';
+import GenerationModal from './GenerationModal';
 import { TutorialScaffold, DownloadOptions } from '@/types';
 import { AnimatedCard } from './AnimatedCard';
-import GenerationModal from './GenerationModal';
 import { DownloadManager } from '@/lib/download-manager';
 
 export default function UrlInputForm() {
+  const [progressModalOpen, setProgressModalOpen] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
   const [url, setUrl] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [tutorials, setTutorials] = useState<TutorialScaffold[]>([]);
@@ -109,36 +112,37 @@ export default function UrlInputForm() {
 };
 
 const downloadAllTutorials = async () => {
-  if (!url) {
-    alert('Please enter a documentation URL first');
-    return;
-  }
+    if (!url) {
+      alert('Please enter a documentation URL first');
+      return;
+    }
 
-  try {
-    // Show loading state
-    setIsLoading(true);
-    
-    console.log(`Starting bulk download for ${tutorials.length} tutorials from: ${url}`);
-    
-    // Use ZIP bundle for better user experience
-    await DownloadManager.downloadZipBundle(
-      tutorials, 
-      {
-        format: downloadOptions.format,
-        type: downloadOptions.type
-      },
-      url // Pass the original URL for API calls
-    );
-    
-    console.log('Bulk download completed successfully');
-    
-  } catch (error) {
-    console.error('Download error:', error);
-    alert('Failed to create download bundle. Please try again.');
-  } finally {
-    setIsLoading(false);
-  }
-};
+    try {
+      setIsDownloading(true);
+      setProgressModalOpen(true);
+      
+      // Set up progress callback
+      DownloadManager.setProgressCallback((step) => {
+        console.log('Progress:', step);
+      });
+
+      await DownloadManager.downloadZipBundle(
+        tutorials, 
+        {
+          format: downloadOptions.format,
+          type: downloadOptions.type
+        },
+        url
+      );
+      
+    } catch (error) {
+      console.error('Download error:', error);
+      alert('Failed to create download bundle. Please try again.');
+    } finally {
+      setIsDownloading(false);
+      setProgressModalOpen(false);
+    }
+  };
 
 const downloadCSVOnly = () => {
   const csvContent = DownloadManager.generateCSV(tutorials);
@@ -199,6 +203,17 @@ const downloadCSVOnly = () => {
           )}
         </div>
       </form>
+
+      <ProgressModal
+        isOpen={progressModalOpen}
+        totalTutorials={tutorials.length}
+        downloadOptions={downloadOptions}
+        onCancel={() => {
+          // Optional: Implement cancellation logic
+          setIsDownloading(false);
+          setProgressModalOpen(false);
+        }}
+      />
 
       {error && (
         <div className="bg-red-900/50 border border-red-700 rounded-md p-4">

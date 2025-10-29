@@ -3,7 +3,7 @@ Absolutely! Let me update the README with this important information about the i
 ## Updated README.md
 
 ```markdown
-# Tutorial Generator
+# GuideMind — AI that understands docs and teaches them back.
 
 A powerful AI-powered tool that transforms documentation sites into ready-to-create tutorial scaffolds. Generate tutorial ideas, outlines, and complete content from any documentation with a single click.
 
