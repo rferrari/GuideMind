@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { EnhancementPrompt } from '../types';
 
 interface MarkdownPreviewProps {
   content: string;
@@ -61,21 +62,19 @@ export default function MarkdownPreview({ content, onEnhance }: MarkdownPreviewP
       <div className="flex gap-2 border-b border-gray-700 pb-2">
         <button
           onClick={() => setShowPreview(true)}
-          className={`px-4 py-2 rounded-t-md transition-colors ${
-            showPreview 
-              ? 'bg-gray-700 text-white border-b-2 border-blue-500' 
+          className={`px-4 py-2 rounded-t-md transition-colors ${showPreview
+              ? 'bg-gray-700 text-white border-b-2 border-blue-500'
               : 'bg-gray-800 text-gray-400 hover:text-white'
-          }`}
+            }`}
         >
           Preview
         </button>
         <button
           onClick={() => setShowPreview(false)}
-          className={`px-4 py-2 rounded-t-md transition-colors ${
-            !showPreview 
-              ? 'bg-gray-700 text-white border-b-2 border-blue-500' 
+          className={`px-4 py-2 rounded-t-md transition-colors ${!showPreview
+              ? 'bg-gray-700 text-white border-b-2 border-blue-500'
               : 'bg-gray-800 text-gray-400 hover:text-white'
-          }`}
+            }`}
         >
           Enhance
         </button>
@@ -104,7 +103,7 @@ export default function MarkdownPreview({ content, onEnhance }: MarkdownPreviewP
                 const parts = line.split('`');
                 return (
                   <p key={index}>
-                    {parts.map((part, i) => 
+                    {parts.map((part, i) =>
                       i % 2 === 0 ? part : <code key={i} className="bg-gray-100 px-1 rounded">{part}</code>
                     )}
                   </p>
