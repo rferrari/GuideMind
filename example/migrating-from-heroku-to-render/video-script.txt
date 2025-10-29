@@ -1,0 +1,90 @@
+**Tutorial Title:** Migrating from Heroku to Render
+**Duration:** 12 minutes, 45 seconds
+
+**INTRODUCTION (0:00 - 0:45)**
+
+(Screencast of a developer struggling with Heroku's interface)
+
+Narrator: "Are you tired of dealing with Heroku's limitations and expensive pricing plans? Have you heard of Render, the new platform that promises a better development experience? In this tutorial, we'll show you how to migrate your existing Heroku application to Render, and discover the benefits of a more modern and scalable platform."
+
+(Slide with title "Migrating from Heroku to Render")
+
+Narrator: "By the end of this tutorial, you'll learn how to transfer data from Heroku to Render, set up a new deploy on Render, and understand the key differences between the two platforms. Let's get started!"
+
+**UNDERSTANDING THE DIFFERENCES BETWEEN HEROKU AND RENDER (1:00 - 3:30)**
+
+(Slide with diagram comparing Heroku and Render's architecture)
+
+Narrator: "Before we dive into the migration process, let's take a look at the key differences between Heroku and Render. As you can see, Render is designed for modern, multi-service architectures, allowing you to deploy and manage multiple services in a single platform."
+
+(Screencast of Render's dashboard)
+
+Narrator: "On Render, you can easily manage your services, environments, and secrets, making it much easier to scale and deploy your applications."
+
+(Slide with Key Value data store diagram)
+
+Narrator: "One of the key differences is the data store. Render uses Key Value, a Redis-compatible data store, which provides a simpler and more efficient way to store and retrieve data."
+
+**TRANSFERRING DATA FROM HEROKU TO RENDER (3:45 - 6:00)**
+
+(Screencast of Heroku's data import/export feature)
+
+Narrator: "To transfer data from Heroku to Render, we'll use Heroku's data import/export feature. This allows us to export our data in a JSON format, which we can then import into Render."
+
+(Codemonstration of Hive API calls to import data)
+
+Narrator: "To import the data into Render, we'll use the Hive API to create a new Key Value store and import the data into it. Here's an example of the Hive API call to create a new store: `POST /api/v1/stores`"
+
+```json
+{
+  "name": "my-store",
+  "engine": "key-value"
+}
+```
+
+(Codemonstration of Hive API calls to import data)
+
+Narrator: "Once the store is created, we can import the data into it using the `PUT /api/v1/stores/{store_id}/items` endpoint. Here's an example of the Hive API call to import data:"
+
+```json
+[
+  {"key": "user-1", "value": {"name": "John", "email": "john@example.com"}},
+  {"key": "user-2", "value": {"name": "Jane", "email": "jane@example.com"}}
+]
+```
+
+**SETTING UP A NEW DEPLOY ON RENDER (6:15 - 9:00)**
+
+(Screencast of Render's deploy feature)
+
+Narrator: "Now that we've transferred our data to Render, let's set up a new deploy on Render. We'll create a new service and deploy it to Render using the `render deploy` command."
+
+(Codemonstration of Render's deploy feature)
+
+Narrator: "Once the deploy is complete, we can verify that our application is running on Render by visiting the application's URL."
+
+(Slide with environment variables and secrets diagram)
+
+Narrator: "One of the key benefits of Render is the ability to easily manage environment variables and secrets. We can create and connect environment variables and secrets to our services, making it much easier to manage our application's configuration."
+
+**CONCLUSION (9:45 - 12:30)**
+
+(Slide with recap of key technical achievements)
+
+Narrator: "In this tutorial, we've learned how to migrate our existing Heroku application to Render, transfer data from Heroku to Render, and set up a new deploy on Render. We've also covered key differences between Heroku and Render, including the data store and environment variables and secrets."
+
+(Slide with key takeaways)
+
+Narrator: "Key takeaways from this tutorial include:
+
+* Render is designed for modern, multi-service architectures
+* Render uses Key Value, a Redis-compatible data store
+* Render makes it easy to manage environment variables and secrets
+
+(Slide with call to action)
+
+Narrator: "Next steps include exploring Render's advanced features, such as deploying from a registry and creating workflows. Practice exercises include migrating your own application to Render and experimenting with Render's features."
+
+(Closing shot of Render's dashboard)
+
+Narrator: "Thanks for watching! If you have any questions or feedback, please let us know in the comments below. Happy coding!"

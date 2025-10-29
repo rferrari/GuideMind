@@ -1,0 +1,22 @@
+{
+  "title": "Unlocking Professional Features on Render",
+  "summary": "In this tutorial, you'll learn how to utilize advanced features of Render, such as multi-service architectures and private services. You'll gain a deeper understanding of Render's capabilities.",
+  "difficulty": "advanced",
+  "estimatedCost": {
+    "min": 250,
+    "max": 400
+  },
+  "outline": [
+    "Understanding multi-service architectures",
+    "Setting up private services",
+    "Best practices for leveraging professional features"
+  ],
+  "sourceUrl": "https://render.com/docs/professional-features",
+  "lastUpdated": "2025-10-29T05:07:12.220Z",
+  "hasFullContent": true,
+  "contentTypes": {
+    "text": true,
+    "video": false
+  },
+  "generatedBy": "AI API"
+}

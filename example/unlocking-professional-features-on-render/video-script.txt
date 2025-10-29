@@ -1,0 +1,226 @@
+**Tutorial Title: Unlocking Professional Features on Render**
+
+**INTRODUCTION (0:00 - 0:45)**
+
+[Opening animation with a hook: "Are you ready to supercharge your applications with advanced features on Render?"]
+
+Narrator: "Welcome to this advanced tutorial on unlocking professional features on Render. In this comprehensive guide, you'll learn how to unlock the full potential of Render's capabilities, from multi-service architectures to private services. By the end of this tutorial, you'll be able to leverage the power of Render to take your applications to the next level."
+
+**MAIN CONTENT**
+
+**Understanding Multi-Service Architectures (0:45 - 8:00)**
+
+[Visual cue: Diagram illustrating multi-service architectures, with code editor snippet on the side]
+
+Narrator: "In Render, a multi-service architecture is a collection of services that work together to create a single application. This architecture allows for greater scalability, flexibility, and maintainability. To create a multi-service architecture in Render, you'll need to create multiple services, each with its own code, configuration, and dependencies."
+
+[Code example: Creating a new service using the Hive API]
+
+```bash
+curl -X POST \
+  https://api.render.com/v1/services \
+  -H 'Authorization: Bearer YOUR_API_KEY' \
+  -H 'Content-Type: application/json' \
+  -d '{"name": "my-service", "image": "my-image"}'
+```
+
+Key points:
+
+* Each service in a multi-service architecture is a separate entity with its own code and configuration.
+* Services can communicate with each other using APIs or shared databases.
+* Render provides a built-in service discovery mechanism to simplify communication between services.
+
+Practical example: Creating a simple multi-service architecture with two services: one for authentication and one for data storage.
+
+[Visual cue: Code editor snippet showing the two services communicating with each other]
+
+Narrator: "In this example, we create two services: `auth-service` and `data-service`. `auth-service` handles user authentication, while `data-service` stores user data. We can use Render's service discovery mechanism to connect the two services and enable them to communicate with each other."
+
+**Setting up Private Services (8:00 - 12:00)**
+
+[Visual cue: Diagram illustrating private services, with code editor snippet on the side]
+
+Narrator: "Private services are services that are not publicly accessible and can only be accessed by other services within the same multi-service architecture. To create a private service in Render, you'll need to create a new service and set its `visibility` to `private`."
+
+[Code example: Creating a new private service using the Hive API]
+
+```bash
+curl -X POST \
+  https://api.render.com/v1/services \
+  -H 'Authorization: Bearer YOUR_API_KEY' \
+  -H 'Content-Type: application/json' \
+  -d '{"name": "my-private-service", "image": "my-image", "visibility": "private"}'
+```
+
+Key points:
+
+* Private services are not publicly accessible and can only be accessed by other services within the same multi-service architecture.
+* Private services can be used to store sensitive data or perform sensitive operations.
+* Render provides a built-in mechanism to manage access control for private services.
+
+Practical example: Creating a private service for storing sensitive user data.
+
+[Visual cue: Code editor snippet showing the private service storing sensitive user data]
+
+Narrator: "In this example, we create a private service called `data-service-private` to store sensitive user data. We can use Render's access control mechanism to control access to this service and ensure that only authorized services can access it."
+
+**Best Practices for Leveraging Professional Features (12:00 - 15:00)**
+
+[Visual cue: Diagram illustrating best practices for leveraging professional features, with code editor snippet on the side]
+
+Narrator: "When leveraging professional features on Render, it's essential to follow best practices to ensure scalability, security, and maintainability. Here are some key best practices to keep in mind."
+
+Key points:
+
+* Use service discovery mechanisms to simplify communication between services.
+* Use access control mechanisms to control access to private services.
+* Use environment variables and secrets to store sensitive data.
+
+Practical example: Creating a workflow to deploy a new version of the application with the latest environment variables and secrets.
+
+[Visual cue: Code editor snippet showing the workflow]
+
+Narrator: "In this example, we create a workflow to deploy a new version of the application with the latest environment variables and secrets. We can use Render's workflow mechanism to automate this process and ensure that the application is always up-to-date with the latest configuration."
+
+**Troubleshooting Deploys (15:00 - 17:00)**
+
+[Visual cue: Diagram illustrating troubleshooting deploys, with code editor snippet on the side]
+
+Narrator: "When issues arise during deploys, it's essential to troubleshoot quickly and efficiently. Here are some key steps to take when troubleshooting deploys."
+
+Key points:
+
+* Check the deploy logs for errors.
+* Use Render's debugging mechanism to inspect the application's state.
+* Use environment variables and secrets to store sensitive data.
+
+Practical example: Troubleshooting a deploy issue using Render's debugging mechanism.
+
+[Visual cue: Code editor snippet showing the debugging mechanism]
+
+Narrator: "In this example, we use Render's debugging mechanism to inspect the application's state and identify the issue causing the deploy failure."
+
+**Deploying a Specific Commit (17:00 - 19:00)**
+
+[Visual cue: Diagram illustrating deploying a specific commit, with code editor snippet on the side]
+
+Narrator: "When you need to deploy a specific commit, you can use Render's deploy-from-commit mechanism. Here's how to do it."
+
+Key points:
+
+* Use the `render deploy` command to deploy a specific commit.
+* Use environment variables and secrets to store sensitive data.
+
+Practical example: Deploying a specific commit using the `render deploy` command.
+
+[Visual cue: Code editor snippet showing the `render deploy` command]
+
+Narrator: "In this example, we use the `render deploy` command to deploy a specific commit. We can use Render's environment variables and secrets to store sensitive data and ensure that the application is always up-to-date with the latest configuration."
+
+**Deploy from a Registry (19:00 - 21:00)**
+
+[Visual cue: Diagram illustrating deploying from a registry, with code editor snippet on the side]
+
+Narrator: "When you need to deploy an image from a registry, you can use Render's deploy-from-registry mechanism. Here's how to do it."
+
+Key points:
+
+* Use the `render deploy` command to deploy an image from a registry.
+* Use environment variables and secrets to store sensitive data.
+
+Practical example: Deploying an image from a registry using the `render deploy` command.
+
+[Visual cue: Code editor snippet showing the `render deploy` command]
+
+Narrator: "In this example, we use the `render deploy` command to deploy an image from a registry. We can use Render's environment variables and secrets to store sensitive data and ensure that the application is always up-to-date with the latest configuration."
+
+**Environment Variables & Secrets (21:00 - 23:00)**
+
+[Visual cue: Diagram illustrating environment variables and secrets, with code editor snippet on the side]
+
+Narrator: "When you need to store sensitive data, you can use Render's environment variables and secrets mechanism. Here's how to do it."
+
+Key points:
+
+* Use environment variables to store sensitive data.
+* Use secrets to store sensitive data.
+* Use Render's access control mechanism to control access to sensitive data.
+
+Practical example: Creating an environment variable and secret using Render's API.
+
+[Visual cue: Code editor snippet showing the API call]
+
+Narrator: "In this example, we create an environment variable and secret using Render's API. We can use Render's access control mechanism to control access to sensitive data and ensure that only authorized services can access it."
+
+**Default Environment Variables (23:00 - 25:00)**
+
+[Visual cue: Diagram illustrating default environment variables, with code editor snippet on the side]
+
+Narrator: "When you need to store default environment variables, you can use Render's default environment variables mechanism. Here's how to do it."
+
+Key points:
+
+* Use default environment variables to store sensitive data.
+* Use Render's access control mechanism to control access to sensitive data.
+
+Practical example: Creating a default environment variable using Render's API.
+
+[Visual cue: Code editor snippet showing the API call]
+
+Narrator: "In this example, we create a default environment variable using Render's API. We can use Render's access control mechanism to control access to sensitive data and ensure that only authorized services can access it."
+
+**Create your first workflow (25:00 - 27:00)**
+
+[Visual cue: Diagram illustrating creating a workflow, with code editor snippet on the side]
+
+Narrator: "When you need to automate a process, you can use Render's workflow mechanism. Here's how to create your first workflow."
+
+Key points:
+
+* Use Render's workflow mechanism to automate a process.
+* Use environment variables and secrets to store sensitive data.
+
+Practical example: Creating a workflow to deploy a new version of the application.
+
+[Visual cue: Code editor snippet showing the workflow]
+
+Narrator: "In this example, we create a workflow to deploy a new version of the application. We can use Render's environment variables and secrets to store sensitive data and ensure that the application is always up-to-date with the latest configuration."
+
+**Key Value (Redis- compatible) (27:00 - 29:00)**
+
+[Visual cue: Diagram illustrating Key Value, with code editor snippet on the side]
+
+Narrator: "When you need to store key-value pairs, you can use Render's Key Value mechanism. Here's how to do it."
+
+Key points:
+
+* Use Key Value to store key-value pairs.
+* Use Render's access control mechanism to control access to key-value pairs.
+
+Practical example: Creating a Key Value store using Render's API.
+
+[Visual cue: Code editor snippet showing the API call]
+
+Narrator: "In this example, we create a Key Value store using Render's API. We can use Render's access control mechanism to control access to key-value pairs and ensure that only authorized services can access it."
+
+**CONCLUSION (last 45 seconds)**
+
+[Summary of key technical achievements]
+
+Narrator: "In this tutorial, we've covered advanced features on Render, including multi-service architectures, private services, and environment variables and secrets. We've also covered best practices for leveraging professional features and troubleshooting deploys. By following these best practices and leveraging Render's advanced features, you can take your applications to the next level and ensure scalability, security, and maintainability."
+
+[Call to action]
+
+Narrator: "To get started with Render and unlock the full potential of its advanced features, sign up for a free account today and start building your next application."
+
+[Next steps]
+
+Narrator: "For more information on Render's advanced features and best practices, check out the Render documentation and community resources."
+
+**PRODUCTION NOTES**
+
+* Target audience: advanced level developers
+* Include specific Hive API calls and code examples
+* Add timings for each section
+* Suggest visual elements (code editors, blockchain explorers, diagrams)
+* Create a high-quality video script with engaging narration and clear explanations.

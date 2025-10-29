@@ -1,0 +1,22 @@
+{
+  "title": "Troubleshooting Deploy Issues on Render",
+  "summary": "This tutorial covers common issues that may arise during deployment and how to resolve them. You'll learn how to identify and fix errors in your deploy process.",
+  "difficulty": "intermediate",
+  "estimatedCost": {
+    "min": 200,
+    "max": 350
+  },
+  "outline": [
+    "Understanding deploy logs and error messages",
+    "Identifying common issues with deployment",
+    "Troubleshooting tips and best practices"
+  ],
+  "sourceUrl": "https://render.com/docs/troubleshooting-deploys",
+  "lastUpdated": "2025-10-29T05:06:59.133Z",
+  "hasFullContent": true,
+  "contentTypes": {
+    "text": true,
+    "video": false
+  },
+  "generatedBy": "AI API"
+}

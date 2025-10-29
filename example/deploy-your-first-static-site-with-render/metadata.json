@@ -1,0 +1,22 @@
+{
+  "title": "Deploy Your First Static Site with Render",
+  "summary": "In this tutorial, you'll learn how to deploy a simple static site to Render. You'll understand the basics of Render and how to create a deployable project.",
+  "difficulty": "beginner",
+  "estimatedCost": {
+    "min": 150,
+    "max": 250
+  },
+  "outline": [
+    "Setting up a new project on Render",
+    "Creating a static site with a static site generator",
+    "Deploying the site to Render"
+  ],
+  "sourceUrl": "https://render.com/docs/your-first-deploy",
+  "lastUpdated": "2025-10-29T05:06:46.924Z",
+  "hasFullContent": true,
+  "contentTypes": {
+    "text": true,
+    "video": false
+  },
+  "generatedBy": "AI API"
+}

@@ -1,0 +1,22 @@
+{
+  "title": "Building High-Performance Static Sites with Render",
+  "summary": "This tutorial focuses on building fast and efficient static sites on Render. You'll learn how to optimize your site for better performance and user experience.",
+  "difficulty": "intermediate",
+  "estimatedCost": {
+    "min": 180,
+    "max": 320
+  },
+  "outline": [
+    "Understanding the benefits of static sites",
+    "Best practices for building high-performance static sites",
+    "Optimizing images and content for better performance"
+  ],
+  "sourceUrl": "https://render.com/docs/static-sites",
+  "lastUpdated": "2025-10-29T05:07:25.224Z",
+  "hasFullContent": true,
+  "contentTypes": {
+    "text": true,
+    "video": false
+  },
+  "generatedBy": "AI API"
+}

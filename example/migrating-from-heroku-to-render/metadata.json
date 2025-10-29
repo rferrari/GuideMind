@@ -1,0 +1,22 @@
+{
+  "title": "Migrating from Heroku to Render",
+  "summary": "In this tutorial, you'll learn how to migrate your existing Heroku application to Render. You'll understand the process of setting up a new deploy on Render and transferring data.",
+  "difficulty": "intermediate",
+  "estimatedCost": {
+    "min": 220,
+    "max": 380
+  },
+  "outline": [
+    "Understanding the differences between Heroku and Render",
+    "Transferring data from Heroku to Render",
+    "Setting up a new deploy on Render"
+  ],
+  "sourceUrl": "https://render.com/docs/migrate-from-heroku",
+  "lastUpdated": "2025-10-29T05:07:37.716Z",
+  "hasFullContent": true,
+  "contentTypes": {
+    "text": true,
+    "video": false
+  },
+  "generatedBy": "AI API"
+}

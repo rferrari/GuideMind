@@ -1,0 +1,103 @@
+**Video Title:** Building High-Performance Static Sites with Render
+
+**Intro (0:00 - 0:45)**
+
+(Animated Render logo, background music starts)
+
+Host: "Are you tired of slow websites and poor user experiences? In this tutorial, we'll show you how to build high-performance static sites on Render. What you'll learn is how to optimize your site for better performance, and we'll cover best practices, image optimization, and more. By the end of this tutorial, you'll be able to build fast and efficient static sites that delight your users. So, let's get started!"
+
+**Understanding the Benefits of Static Sites (0:45 - 6:30)**
+
+(Screen recording of a website loading slowly, followed by a static site loading quickly)
+
+Host: "So, why static sites? Static sites are faster, more secure, and scalable. They're ideal for blogs, portfolios, and even e-commerce sites. Let's dive into the benefits of static sites."
+
+(Visual cue: a diagram showing the difference between dynamic and static sites)
+
+Host: "With static sites, you avoid the overhead of server-side rendering and database queries. This means faster page loads, better performance, and improved user experience."
+
+(Key points: 1. Static sites are faster, 2. More secure, 3. Scalable)
+
+**Practical Example: Creating a Static Site with Render (6:30 - 12:00)**
+
+(Code editor screen recording, creating a new Render project)
+
+Host: "Let's create a new Render project. We'll use the Render CLI to create a new project, and then configure it to use a static site generator like Gatsby."
+
+(Visual cue: code editor snippet showing the Render CLI command)
+
+Host: "Here's the code to create a new Render project:
+```bash
+render project init my-static-site
+```
+(Code editor screen recording, configuring the project to use Gatsby)
+
+Host: "Next, we'll configure the project to use Gatsby. We'll add the Gatsby dependency to our project, and then configure it to use the Render CLI."
+```bash
+npm install gatsby
+```
+(Code editor screen recording, creating a new Gatsby configuration file)
+
+Host: "Here's the code to create a new Gatsby configuration file:
+```javascript
+module.exports = {
+  siteMetadata: {
+    title: 'My Static Site',
+  },
+  plugins: ['gatsby-plugin-react-helmet'],
+};
+```
+**Best Practices for Building High-Performance Static Sites (12:00 - 18:00)**
+
+(Visual cue: a diagram showing the components of a static site)
+
+Host: "So, what are the best practices for building high-performance static sites? Here are a few key points to keep in mind."
+
+(Key points: 1. Use a static site generator, 2. Optimize images, 3. Use caching)
+
+Host: "First, use a static site generator like Gatsby or Next.js. These tools can help you optimize your site for performance."
+
+(Visual cue: code editor snippet showing how to use Gatsby's built-in image optimization features)
+
+Host: "Second, optimize your images. This can be done using tools like ImageOptim or ShortPixel."
+
+(Visual cue: a diagram showing the benefits of caching)
+
+Host: "Finally, use caching to reduce the number of requests your site makes to the server."
+
+**Optimizing Images and Content for Better Performance (18:00 - 24:00)**
+
+(Visual cue: a diagram showing the benefits of image optimization)
+
+Host: "So, how can we optimize our images and content for better performance? Here are a few key points to keep in mind."
+
+(Key points: 1. Use image compression, 2. Optimize CSS and JavaScript files, 3. Use a content delivery network)
+
+Host: "First, use image compression to reduce the size of your images. This can be done using tools like ImageOptim or ShortPixel."
+
+(Visual cue: code editor snippet showing how to optimize CSS and JavaScript files)
+
+Host: "Second, optimize your CSS and JavaScript files. This can be done using tools like Gzip or Brotli."
+
+(Visual cue: a diagram showing the benefits of using a content delivery network)
+
+Host: "Finally, use a content delivery network to reduce the number of requests your site makes to the server."
+
+**Conclusion (24:00 - 25:00)**
+
+(Screen recording of a static site loading quickly)
+
+Host: "That's it for this tutorial on building high-performance static sites with Render. By following these best practices and using the tools and techniques we've covered, you can build fast and efficient static sites that delight your users."
+
+(Key takeaways: 1. Use a static site generator, 2. Optimize images and content, 3. Use caching)
+
+Host: "Thanks for watching, and we'll see you in the next tutorial!"
+
+(Animated Render logo, background music ends)
+
+**Production Notes:**
+
+* Target audience: intermediate level developers
+* Include specific Hive API calls and code examples
+* Add timings for each section
+* Suggest visual elements (code editors, blockchain explorers, diagrams)

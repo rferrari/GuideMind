@@ -1,0 +1,98 @@
+**Video Script for Deploying Your First Static Site with Render**
+
+**INTRODUCTION (0:00 - 0:45)**
+
+[ Hook: Opening question ]
+Are you ready to take your web development skills to the next level and deploy a static site to Render?
+
+[ What we'll cover: Brief overview ]
+In this tutorial, you'll learn the basics of Render and how to deploy a simple static site to their platform. We'll cover setting up a new project, creating a static site with a static site generator, and deploying the site to Render.
+
+[ What you'll learn: Specific, actionable outcomes ]
+By the end of this tutorial, you'll understand how to:
+
+* Set up a new project on Render
+* Create a deployable static site with a static site generator
+* Deploy the site to Render and troubleshoot any issues
+* Understand the basics of environment variables and secrets
+* Create a professional workflow for deployment
+
+**SETTING UP A NEW PROJECT ON RENDER (0:45 - 5:00)**
+
+[ Visual cues: Render dashboard screenshot ]
+Let's start by setting up a new project on Render. First, go to the Render dashboard and click on the "New Project" button.
+
+[ Narration: Detailed explanation ]
+To set up a new project, we need to choose a name, select a region, and configure the environment variables. For this example, let's choose a name, select the "New York" region, and configure the environment variables to use the default settings.
+
+[ Key points: 2-3 specific technical insights ]
+* Render allows you to create multiple projects and environments, making it easy to test and deploy different versions of your site.
+* When creating a new project, you can choose from a variety of environments, including "Development", "Staging", and "Production".
+* Environment variables are used to store sensitive information, such as API keys and database credentials, and can be easily accessed and updated in your code.
+
+[ Practical example: Create a new project ]
+Let's create a new project on Render. [Create a new project on Render and demonstrate the process]
+
+**CREATING A STATIC SITE WITH A STATIC SITE GENERATOR (5:00 - 10:00)**
+
+[ Visual cues: Hugo screenshot ]
+For this example, we'll use the Hugo static site generator. Hugo is a popular choice for building static sites due to its ease of use and flexibility.
+
+[ Narration: Detailed explanation ]
+To create a static site with Hugo, we need to create a new Hugo project, configure the configuration file, and build the site. Let's create a new Hugo project using the command `hugo new site mysite`. This will create a new directory called `mysite` with the basic structure for a Hugo site.
+
+[ Key points: 2-3 specific technical insights ]
+* Hugo allows you to create a new site using the command `hugo new site <sitename>`, which creates the basic structure for a Hugo site.
+* The `config.toml` file is where you configure the settings for your Hugo site, including the title, author, and theme.
+* Hugo has a built-in `themes` directory where you can find and install pre-built themes for your site.
+
+[ Practical example: Create a Hugo site ]
+Let's create a Hugo site using the command `hugo new site mysite`. [Create a new Hugo site and demonstrate the process]
+
+**DEPLOYING THE SITE TO RENDER (10:00 - 15:00)**
+
+[ Visual cues: Render deploy screenshot ]
+Now that we have a static site built with Hugo, let's deploy it to Render. First, we need to create a new deploy on Render, which involves specifying the GitHub repository, branch, and environment variables.
+
+[ Narration: Detailed explanation ]
+To deploy the site to Render, we need to create a new deploy using the Render dashboard. We'll specify the GitHub repository, branch, and environment variables. For this example, let's specify the `main` branch and the default environment variables.
+
+[ Key points: 2-3 specific technical insights ]
+* Render allows you to deploy your site from a GitHub repository, which makes it easy to manage and update your site.
+* When creating a new deploy, you can specify the branch to deploy from, which allows you to test and deploy different versions of your site.
+* Environment variables are used to store sensitive information, such as API keys and database credentials, and can be easily accessed and updated in your code.
+
+[ Practical example: Deploy the site ]
+Let's deploy the site to Render. [Deploy the site using the Render dashboard and demonstrate the process]
+
+**TRoubleshooting DEPLOYS (15:00 - 18:00)**
+
+[ Visual cues: Render deploy error screenshot ]
+Sometimes, deploys can fail due to errors in the code or configuration. Let's walk through how to troubleshoot deploys on Render.
+
+[ Narration: Detailed explanation ]
+To troubleshoot deploys, we need to check the deploy logs, which provide detailed information about the deploy process. We can also check the environment variables and configuration settings to ensure that they are correct.
+
+[ Key points: 2-3 specific technical insights ]
+* Render provides detailed logs for each deploy, which makes it easy to troubleshoot issues.
+* Environment variables are used to store sensitive information, such as API keys and database credentials, and can be easily accessed and updated in your code.
+* Configuration settings can be easily updated in the Render dashboard, which makes it easy to test and deploy different versions of your site.
+
+[ Practical example: Troubleshoot a deploy ]
+Let's troubleshoot a deploy by checking the logs and environment variables. [Troubleshoot a deploy using the Render dashboard and demonstrate the process]
+
+**CONCLUSION (last 45 seconds)**
+
+[ Recap: Summarize key technical achievements ]
+In this tutorial, you learned how to set up a new project on Render, create a static site with a static site generator, and deploy the site to Render. You also learned how to troubleshoot deploys and understand the basics of environment variables and secrets.
+
+[ Key takeaways: 3 main technical points ]
+* Render allows you to create multiple projects and environments, making it easy to test and deploy different versions of your site.
+* Environment variables are used to store sensitive information, such as API keys and database credentials, and can be easily accessed and updated in your code.
+* Configuration settings can be easily updated in the Render dashboard, which makes it easy to test and deploy different versions of your site.
+
+[ Call to action: Specific next steps or practice exercises ]
+Next, try creating a new project on Render and deploying a static site to the platform.
+
+[ Next steps: Related advanced topics ]
+For advanced topics, consider learning about multi-service architectures, key-value stores, and creating professional workflows for deployment.
