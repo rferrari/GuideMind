@@ -28,7 +28,6 @@ export async function crawlMultiplePages(baseUrl: string, maxPages: number = 5):
   await crawlPage(baseUrl);
   return content;
 }
-
 export async function crawlDocumentation(baseUrl: string): Promise<string[]> {
   // Validate URL
   if (!baseUrl || typeof baseUrl !== 'string') {
@@ -49,6 +48,9 @@ export async function crawlDocumentation(baseUrl: string): Promise<string[]> {
       timeout: 10000,
       headers: {
         'User-Agent': 'TutorialGenerator/1.0'
+      },
+      validateStatus: function (status) {
+        return status >= 200 && status < 400; // Accept 2xx and 3xx status codes
       }
     });
     
@@ -80,9 +82,47 @@ export async function crawlDocumentation(baseUrl: string): Promise<string[]> {
     
     return uniqueContent;
     
-  } catch (error) {
-    console.error('Crawling failed for URL:', baseUrl, error);
+  } catch (error: any) {
+    console.error('Crawling failed for URL:', baseUrl, error.message);
+    
+    // Provide more specific error information
+    if (error.code === 'ENOTFOUND') {
+      console.error(`DNS lookup failed: ${baseUrl} does not exist or is unreachable`);
+    } else if (error.response) {
+      console.error(`HTTP ${error.response.status}: ${baseUrl}`);
+    } else if (error.request) {
+      console.error(`No response received from: ${baseUrl}`);
+    }
+    
     return [];
+  }
+}
+
+// Add URL validation function
+export async function validateUrl(url: string): Promise<{ isValid: boolean; status?: number; error?: string }> {
+  try {
+    let urlToCheck = url;
+    if (!urlToCheck.startsWith('http://') && !urlToCheck.startsWith('https://')) {
+      urlToCheck = `https://${urlToCheck}`;
+    }
+
+    const response = await axios.head(urlToCheck, {
+      timeout: 5000,
+      headers: {
+        'User-Agent': 'TutorialGenerator/1.0'
+      },
+      validateStatus: null // Don't throw on any status code
+    });
+
+    return { 
+      isValid: response.status < 400, 
+      status: response.status 
+    };
+  } catch (error: any) {
+    return { 
+      isValid: false, 
+      error: error.code === 'ENOTFOUND' ? 'DNS lookup failed - domain does not exist' : error.message 
+    };
   }
 }
 
