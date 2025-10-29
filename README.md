@@ -8,17 +8,17 @@ A AI-powered tool that transforms documentation sites into ready-to-create tutor
 
 ## 🚀 Live Demo
 
-[View Live Application](https://guide-mind-git-main-rferrari1s-projects.vercel.app/)
+[View Live Application at https://guide-mind.vercel.app/](https://guide-mind.vercel.app/)
 
 ## ✨ Features
 
 - **🔍 Smart Documentation Crawling** - Automatically scans and analyzes documentation sites with intelligent URL discovery
-- **🤖 AI-Powered Tutorial Generation** - Creates relevant tutorial ideas and outlines using OpenAI
+- **🤖 AI-Powered Tutorial Generation** - Creates relevant tutorial ideas and outlines using LLM
 - **🎯 Targeted Content Creation** - Generates tutorials from specific documentation pages for maximum relevance
 - **📝 Interactive Content Creation** - Generate full text tutorials or video scripts with markdown editor
 - **🎯 Scaffold & Full Content Modes** - Choose between basic outlines or complete AI-generated content
 - **💾 Bulk Export** - Download all tutorials as organized ZIP bundles with CSV index
-- **🎨 Dark Theme UI** - Beautiful, accessible interface optimized for content creation
+- **🎨 Dark Theme UI** - Accessible interface optimized for content creation
 - **⚡ Real-time Enhancements** - Refine and improve generated content with AI enhancements
 
 ## 🧠 Intelligent Crawling Strategy
@@ -37,9 +37,9 @@ AI analyzes content and identifies tutorial opportunities
          │
          ▼
 Generates tutorial ideas with specific source URLs:
-• "Web2 Authentication" → https://docs.hive.io/web2-auth
-• "JSON RPC API" → https://docs.hive.io/json-rpc  
-• "Data Analytics" → https://docs.hive.io/analytics
+• "Node Setup" → https://developers.hive.io/nodeop/
+• "JSON RPC API" → https://developers.hive.io/apidefinitions/#jsonrpc.get_methods
+• "Authentication" → https://developers.hive.io/quickstart/#quickstart-authentication
 ```
 
 ### Phase 2: Targeted Content Generation
@@ -47,7 +47,7 @@ Generates tutorial ideas with specific source URLs:
 For each tutorial idea:
          │
          ▼
-Crawls the specific documentation URL (e.g., https://docs.hive.io/web2-auth)
+Crawls the specific documentation URL
          │
          ▼
 AI generates content using the most relevant documentation
@@ -77,19 +77,22 @@ High-quality, focused tutorials matching the actual documentation
 ```
 tutorial-generator/
 ├── app/                    # Next.js 14 App Router
-│   ├── api/               # API routes (crawling, AI generation)
-│   ├── layout.tsx         # Root layout with dark theme
-│   └── page.tsx           # Main application page
-├── components/            # React components
-│   ├── UrlInputForm.tsx   # Main URL input and tutorial display
-│   ├── GenerationModal.tsx# Tutorial generation modal
-│   ├── MarkdownEditor.tsx # Markdown editor with preview
-│   └── AnimatedCard.tsx   # Animation wrapper component
-├── lib/                   # Core utilities
-│   ├── crawler.ts         # Documentation scraping
-│   ├── ai-generator.ts    # OpenAI integration
-│   └── download-manager.ts# File export and ZIP creation
-└── types/                 # TypeScript type definitions
+│   ├── api/                # API routes (crawling, AI generation)
+│   ├── layout.tsx          # Root layout with dark theme
+│   └── page.tsx            # Main application page
+├── components/             # React components
+│   ├── UrlInputForm.tsx    # Main URL input and tutorial display
+│   ├── GenerationModal.tsx # Tutorial generation modal
+│   ├── MarkdownEditor.tsx  # Markdown editor with preview
+│   └── AnimatedCard.tsx    # Tutorial Card wrapper component
+│   └── MarkdownPreview.tsx # Markdown editor with preview
+│   └── ProgressModal.tsx   # Generation Progress Modal
+│   └── RateLimitCard.tsx   # Rate Limit Card for errors and retries
+├── lib/                    # Core utilities
+│   ├── crawler.ts          # Documentation scraping
+│   ├── ai-generator.ts     # OpenAI integration
+│   └── download-manager.ts # File export and ZIP creation
+└── types/                  # TypeScript type definitions
 ```
 
 ## 🚀 Quick Start
@@ -97,33 +100,39 @@ tutorial-generator/
 ### Prerequisites
 
 - Node.js 18+ 
-- OpenAI API key
+- OpenAI API key or Compatible
 
 ### Installation
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/your-username/tutorial-generator.git
+   gh repo clone rferrari/GuideMind
    cd tutorial-generator
    ```
 
 2. **Install dependencies**
    ```bash
-   npm install
+   pnpm install
    ```
 
 3. **Set up environment variables**
    ```bash
-   cp .env.example .env.local
+   cp sample-env.txt .env
    ```
-   Edit `.env.local` and add your OpenAI API key:
+   Edit `.env` and add your OpenAI API key:
    ```env
    OPENAI_API_KEY=your_openai_api_key_here
    ```
+   Edit `.env` and add your OpenAI Compatible base url and model (optional):
+   ```env
+   OPENAI_BASE_URL=https://api.groq.com/openai/v1
+   #OPENAI_LLM_MODEL=openai/gpt-oss-20b
+   ```
+   If no model selected `gpt-3.5-turbo` will be used.
 
 4. **Run the development server**
    ```bash
-   npm run dev
+   pnpm dev
    ```
    Open [http://localhost:3000](http://localhost:3000) in your browser.
 
@@ -131,20 +140,21 @@ tutorial-generator/
 
 1. **Deploy to Vercel**
    ```bash
-   npm run build
+   pnpm build
    vercel --prod
    ```
 
 2. **Set environment variables in Vercel**
    - Go to your project settings in Vercel
-   - Add `OPENAI_API_KEY` with your OpenAI API key
+   - Add `OPENAI_API_KEY` with your OpenAI API key or compatible
 
 ## 💡 How to Use
 
 ### 1. Generate Tutorial Ideas
 - Enter any documentation URL (e.g., `https://docs.github.com`)
 - Click "Generate Tutorial Ideas"
-- Browse through AI-generated tutorial concepts with outlines, difficulty ratings, and specific source URLs
+- Browse through AI-generated tutorial concepts with outlines, difficulty ratings.
+- Generate to preview and/or enhance it with quick prompts or custom prompts
 
 ### 2. Create Content
 - **Scaffold Mode**: Download basic outlines for contributors to expand
@@ -167,9 +177,7 @@ This tool addresses the challenge of turning documentation into a steady pipelin
 - **Exports multiple formats** including Markdown files and CSV indexes
 
 ### Deliverables
-- ✅ GitHub repository with full source code
-- ✅ Hosted web app on Vercel
-- ✅ Simple web interface for URL input
+- ✅ Web interface for URL input
 - ✅ Markdown file generation for tutorial scaffolds
 - ✅ CSV index with tutorial metadata including source URLs
 - ✅ Bulk download functionality with ZIP bundles
@@ -230,7 +238,7 @@ Customize the AI generation prompt here...
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+We welcome contributions!
 
 ### Development Workflow
 1. Fork the repository
@@ -241,11 +249,12 @@ We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) f
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License.
 
 ## 🙏 Acknowledgments
 
 - [OpenAI](https://openai.com) for powerful AI capabilities
+- [Groq](https://groq.com/) delivers fast, low cost inference that doesn’t flake when things get real.
 - [Next.js](https://nextjs.org) for the excellent React framework
 - [Vercel](https://vercel.com) for seamless deployment
 - [Tailwind CSS](https://tailwindcss.com) for beautiful styling
@@ -253,12 +262,10 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 📞 Support
 
 If you have any questions or need help:
-- Open an [issue](https://github.com/your-username/tutorial-generator/issues)
-- Check the [documentation](https://github.com/your-username/tutorial-generator/wiki)
-- Contact the maintainers
+- Open an [issue](https://github.com/rferrari/GuideMind/issues)
 
 ---
 
 **Transform your documentation into engaging tutorials with intelligent AI-powered content generation!** 🚀
 
-*Built with ❤️ for the developer community*
+*Built with ❤️ for the ns.com community*
