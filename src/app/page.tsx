@@ -41,7 +41,12 @@ export default function Home() {
             >
               Tutorial Generator Competition
             </a>{' '}
-            on ns.com
+            on <a
+              href="https://ns.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-400 hover:text-blue-300 underline transition-colors"
+            >ns.com</a>
           </p>
           <p className="text-xs text-gray-600 max-w-md mx-auto">
             This project was created as an entry for an Earn competition.

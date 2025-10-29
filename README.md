@@ -124,11 +124,18 @@ tutorial-generator/
    OPENAI_API_KEY=your_openai_api_key_here
    ```
    Edit `.env` and add your OpenAI Compatible base url and model (optional):
+   You can define multiple models for automatic fallback (in order of priority):
    ```env
    OPENAI_BASE_URL=https://api.groq.com/openai/v1
-   #OPENAI_LLM_MODEL=openai/gpt-oss-20b
+   # Primary
+   OPENAI_LLM_MODEL_1=openai/gpt-oss-20b
+   # Secondary
+   OPENAI_LLM_MODEL_2=llama-3.1-8b-instant
+   # Tertiary
+   OPENAI_LLM_MODEL_3=openai/gpt-oss-120b
+   # Optional
+   # OPENAI_LLM_MODEL_4=llama-3.3-70b-versatile
    ```
-   If no model selected `gpt-3.5-turbo` will be used.
 
 4. **Run the development server**
    ```bash
