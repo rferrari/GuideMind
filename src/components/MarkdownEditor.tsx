@@ -10,7 +10,7 @@ interface MarkdownEditorProps {
 }
 
 export default function MarkdownEditor({ content, onContentChange, onEnhance }: MarkdownEditorProps) {
-  const [viewMode, setViewMode] = useState<'edit' | 'preview' | 'split'>('edit');
+  const [viewMode, setViewMode] = useState<'edit' | 'preview'>('edit');
   const [customPrompt, setCustomPrompt] = useState('');
 
   const enhancementPrompts = [
@@ -74,21 +74,19 @@ export default function MarkdownEditor({ content, onContentChange, onEnhance }: 
         <div className="flex gap-1 bg-gray-700 rounded-md p-1">
           <button
             onClick={() => setViewMode('edit')}
-            className={`px-3 py-1 rounded text-sm transition-colors ${
-              viewMode === 'edit' 
-                ? 'bg-gray-600 text-white' 
-                : 'text-gray-300 hover:text-white'
-            }`}
+            className={`px-3 py-1 rounded text-sm transition-colors ${viewMode === 'edit'
+              ? 'bg-gray-600 text-white'
+              : 'text-gray-300 hover:text-white'
+              }`}
           >
             Edit
           </button>
           <button
             onClick={() => setViewMode('preview')}
-            className={`px-3 py-1 rounded text-sm transition-colors ${
-              viewMode === 'preview' 
-                ? 'bg-gray-600 text-white' 
-                : 'text-gray-300 hover:text-white'
-            }`}
+            className={`px-3 py-1 rounded text-sm transition-colors ${viewMode === 'preview'
+              ? 'bg-gray-600 text-white'
+              : 'text-gray-300 hover:text-white'
+              }`}
           >
             Preview
           </button>
@@ -103,11 +101,11 @@ export default function MarkdownEditor({ content, onContentChange, onEnhance }: 
             Split
           </button> */}
         </div>
-        
+
         <div className="text-sm text-gray-400">
           {viewMode === 'edit' && 'Editing Mode'}
           {viewMode === 'preview' && 'Preview Mode'}
-          {viewMode === 'split' && 'Split View'}
+          {/* {viewMode === 'split' && 'Split View'} */}
         </div>
       </div>
 
@@ -129,7 +127,7 @@ export default function MarkdownEditor({ content, onContentChange, onEnhance }: 
       {/* Enhancement Section */}
       <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
         <h3 className="text-lg font-semibold text-white mb-4">Enhance Content with AI</h3>
-        
+
         {/* Quick Enhancement Prompts */}
         <div className="mb-6">
           <h4 className="text-sm font-medium text-gray-300 mb-3">Quick Enhancements:</h4>
@@ -167,7 +165,7 @@ export default function MarkdownEditor({ content, onContentChange, onEnhance }: 
               Enhance
             </button>
           </div>
-          
+
           {/* Enhancement Examples */}
           <div className="mt-3 p-3 bg-gray-750 rounded-md">
             <h5 className="text-xs font-medium text-gray-300 mb-2">Enhancement Examples:</h5>

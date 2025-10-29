@@ -5,11 +5,10 @@ A AI-powered tool that transforms documentation sites into ready-to-create tutor
 ![GuideMind](https://img.shields.io/badge/Next.js-14-black?style=for-the-badge&logo=next.js)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?style=for-the-badge&logo=typescript)
 ![AI Powered](https://img.shields.io/badge/AI-Powered-orange?style=for-the-badge&logo=openai)
-![AI Powered](https://img.shields.io/badge/AI-Powered-orange?style=for-the-badge&logo=groq)
 
 ## 🚀 Live Demo
 
-[View Live Application](https://tutorial-generator.vercel.app)
+[View Live Application](https://guide-mind-git-main-rferrari1s-projects.vercel.app/)
 
 ## ✨ Features
 
