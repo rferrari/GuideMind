@@ -109,15 +109,29 @@ export default function UrlInputForm() {
 };
 
 const downloadAllTutorials = async () => {
+  if (!url) {
+    alert('Please enter a documentation URL first');
+    return;
+  }
+
   try {
     // Show loading state
     setIsLoading(true);
     
+    console.log(`Starting bulk download for ${tutorials.length} tutorials from: ${url}`);
+    
     // Use ZIP bundle for better user experience
-    await DownloadManager.downloadZipBundle(tutorials, {
-      format: downloadOptions.format,
-      type: downloadOptions.type
-    });
+    await DownloadManager.downloadZipBundle(
+      tutorials, 
+      {
+        format: downloadOptions.format,
+        type: downloadOptions.type
+      },
+      url // Pass the original URL for API calls
+    );
+    
+    console.log('Bulk download completed successfully');
+    
   } catch (error) {
     console.error('Download error:', error);
     alert('Failed to create download bundle. Please try again.');
@@ -252,7 +266,7 @@ const downloadCSVOnly = () => {
         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
       </svg>
-      Generating Bundle...
+      {downloadOptions.format === 'full' ? 'Generating Content...' : 'Creating Bundle...'}
     </span>
   ) : (
     'Download All Files'
@@ -279,24 +293,24 @@ const downloadCSVOnly = () => {
                   <div className="flex justify-between items-start mb-4">
                     <h3 className="font-bold text-xl text-white">{tutorial.title}</h3>
                     <div className="flex gap-2">
-                      <button
+                      {/* <button
                         onClick={() => downloadIndividualTutorial(tutorial, 'text')}
                         className="bg-gray-700 text-gray-200 px-3 py-1 rounded-md hover:bg-gray-600 transition-colors text-sm"
                         title="Download scaffold"
                       >
                         📥 Scaffold
-                      </button>
+                      </button> */}
                       <button
                         onClick={() => openGenerationModal(tutorial, 'text')}
                         className="bg-blue-600 text-white px-3 py-1 rounded-md hover:bg-blue-700 transition-colors text-sm"
                       >
-                        Generate Text
+                        Generate Text Tutorial
                       </button>
                       <button
                         onClick={() => openGenerationModal(tutorial, 'video')}
                         className="bg-orange-600 text-white px-3 py-1 rounded-md hover:bg-orange-700 transition-colors text-sm"
                       >
-                        Generate Video
+                        Generate Video Script
                       </button>
                     </div>
                   </div>

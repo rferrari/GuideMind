@@ -3,16 +3,27 @@ import { TutorialScaffold } from '@/types';
 
 export class DownloadManager {
 
- static async generateMissingContent(tutorials: TutorialScaffold[], type: 'text' | 'video' | 'both'): Promise<TutorialScaffold[]> {
-    const updatedTutorials = [...tutorials];
+ static async generateMissingContent(
+  tutorials: TutorialScaffold[], 
+  type: 'text' | 'video' | 'both',
+  originalUrl: string
+): Promise<{ tutorials: TutorialScaffold[], stats: { success: number, failed: number } }> {
+  const updatedTutorials = [...tutorials];
+  let successCount = 0;
+  let failedCount = 0;
+
+  console.log(`Starting bulk generation for ${tutorials.length} tutorials`);
+  console.log(`Original URL: ${originalUrl}`);
+  console.log(`Content type: ${type}`);
+
+  for (let i = 0; i < updatedTutorials.length; i++) {
+    const tutorial = updatedTutorials[i];
     
-    for (let i = 0; i < updatedTutorials.length; i++) {
-      const tutorial = updatedTutorials[i];
-      
-      // Generate missing text content
-      if ((type === 'text' || type === 'both') && !tutorial.generatedContent?.text) {
-        console.log(`Generating text content for: ${tutorial.title}`);
-        const textContent = await this.generateTutorialContent(tutorial, 'text');
+    // Generate missing text content
+    if ((type === 'text' || type === 'both') && !tutorial.generatedContent?.text) {
+      console.log(`[${i + 1}/${tutorials.length}] Generating text content for: ${tutorial.title}`);
+      try {
+        const textContent = await this.callGenerateTutorialAPI(tutorial, 'text', originalUrl);
         updatedTutorials[i] = {
           ...tutorial,
           generatedContent: {
@@ -21,15 +32,32 @@ export class DownloadManager {
             lastUpdated: new Date()
           }
         };
-        
-        // Add small delay to avoid rate limiting
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        successCount++;
+        console.log(`✅ Successfully generated text for: ${tutorial.title}`);
+      } catch (error) {
+        console.error(`❌ Failed to generate text for ${tutorial.title}:`, error);
+        // Use template as fallback
+        const fallbackContent = this.generateBasicTextTutorial(tutorial);
+        updatedTutorials[i] = {
+          ...tutorial,
+          generatedContent: {
+            ...tutorial.generatedContent,
+            text: fallbackContent,
+            lastUpdated: new Date()
+          }
+        };
+        failedCount++;
       }
       
-      // Generate missing video content
-      if ((type === 'video' || type === 'both') && !tutorial.generatedContent?.video) {
-        console.log(`Generating video content for: ${tutorial.title}`);
-        const videoContent = await this.generateTutorialContent(tutorial, 'video');
+      // Add small delay to avoid rate limiting
+      await new Promise(resolve => setTimeout(resolve, 2000));
+    }
+    
+    // Generate missing video content
+    if ((type === 'video' || type === 'both') && !tutorial.generatedContent?.video) {
+      console.log(`[${i + 1}/${tutorials.length}] Generating video content for: ${tutorial.title}`);
+      try {
+        const videoContent = await this.callGenerateTutorialAPI(tutorial, 'video', originalUrl);
         updatedTutorials[i] = {
           ...tutorial,
           generatedContent: {
@@ -38,14 +66,67 @@ export class DownloadManager {
             lastUpdated: new Date()
           }
         };
-        
-        // Add small delay to avoid rate limiting
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        successCount++;
+        console.log(`✅ Successfully generated video for: ${tutorial.title}`);
+      } catch (error) {
+        console.error(`❌ Failed to generate video for ${tutorial.title}:`, error);
+        // Use template as fallback
+        const fallbackContent = this.generateBasicVideoScript(tutorial);
+        updatedTutorials[i] = {
+          ...tutorial,
+          generatedContent: {
+            ...tutorial.generatedContent,
+            video: fallbackContent,
+            lastUpdated: new Date()
+          }
+        };
+        failedCount++;
       }
+      
+      // Add small delay to avoid rate limiting
+      await new Promise(resolve => setTimeout(resolve, 2000));
+    }
+  }
+  
+  console.log(`Bulk generation completed: ${successCount} success, ${failedCount} failed`);
+  return { tutorials: updatedTutorials, stats: { success: successCount, failed: failedCount } };
+}
+
+  private static async callGenerateTutorialAPI(
+  tutorial: TutorialScaffold, 
+  contentType: 'text' | 'video', 
+  originalUrl: string
+): Promise<string> {
+  try {
+    console.log(`Calling API for ${tutorial.title} (${contentType}) with URL: ${originalUrl}`);
+    
+    const response = await fetch('/api/generate-tutorial', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        tutorial,
+        type: contentType,
+        originalUrl: originalUrl
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+      throw new Error(errorData.error || `API returned ${response.status}`);
+    }
+
+    const data = await response.json();
+    
+    if (!data.content) {
+      throw new Error('No content returned from API');
     }
     
-    return updatedTutorials;
+    return data.content;
+  } catch (error) {
+    console.error(`API call failed for ${tutorial.title}:`, error);
+    throw error;
   }
+}
 
   private static async generateTutorialContent(tutorial: TutorialScaffold, type: 'text' | 'video'): Promise<string> {
     try {
@@ -145,12 +226,20 @@ PRODUCTION NOTES:
 `;
   }
 
-  static async createZipBundle(tutorials: TutorialScaffold[], options: { format: 'scaffold' | 'full', type: 'text' | 'video' | 'both' }): Promise<Blob> {
+ 
+  static async createZipBundle(
+    tutorials: TutorialScaffold[], 
+    options: { format: 'scaffold' | 'full', type: 'text' | 'video' | 'both' },
+    originalUrl: string
+  ): Promise<{ blob: Blob, stats: { success: number, failed: number, total: number } }> {
     let tutorialsToBundle = tutorials;
+    let generationStats = { success: 0, failed: 0, total: 0 };
     
-    // If full content is requested, generate missing content first
+    // If full content is requested, generate missing content first using real API
     if (options.format === 'full') {
-      tutorialsToBundle = await this.generateMissingContent(tutorials, options.type);
+      const result = await this.generateMissingContent(tutorials, options.type, originalUrl);
+      tutorialsToBundle = result.tutorials;
+      generationStats = { ...result.stats, total: tutorials.length };
     }
     
     const zip = new JSZip();
@@ -160,7 +249,7 @@ PRODUCTION NOTES:
     zip.file('tutorial-scaffolds-index.csv', csvContent);
     
     // Add README file
-    const readmeContent = this.generateReadme(tutorialsToBundle, options);
+    const readmeContent = this.generateReadme(tutorialsToBundle, options, generationStats);
     zip.file('README.md', readmeContent);
     
     // Add tutorial files
@@ -186,7 +275,7 @@ PRODUCTION NOTES:
           }
         }
         
-        // Add metadata file
+        // Add metadata file with generation info
         const metadata = {
           title: tutorial.title,
           summary: tutorial.summary,
@@ -199,33 +288,43 @@ PRODUCTION NOTES:
           contentTypes: {
             text: !!tutorial.generatedContent?.text,
             video: !!tutorial.generatedContent?.video
-          }
+          },
+          generatedBy: tutorial.generatedContent ? 'AI API' : 'Template (Fallback)'
         };
         tutorialFolder.file('metadata.json', JSON.stringify(metadata, null, 2));
       }
     }
     
     // Generate ZIP file
-    return await zip.generateAsync({ 
+    const blob = await zip.generateAsync({ 
       type: 'blob',
       compression: 'DEFLATE',
       compressionOptions: { level: 6 }
     });
+    
+    return { blob, stats: generationStats };
   }
 
-  private static generateReadme(tutorials: TutorialScaffold[], options: { format: 'scaffold' | 'full', type: 'text' | 'video' | 'both' }): string {
-    const generatedCount = tutorials.filter(t => t.generatedContent).length;
-    const totalCount = tutorials.length;
+  private static generateReadme(
+    tutorials: TutorialScaffold[], 
+    options: { format: 'scaffold' | 'full', type: 'text' | 'video' | 'both' },
+    stats: { success: number, failed: number, total: number }
+  ): string {
+    const preGeneratedCount = tutorials.filter(t => 
+      (options.type === 'text' || options.type === 'both') && t.generatedContent?.text ||
+      (options.type === 'video' || options.type === 'both') && t.generatedContent?.video
+    ).length;
     
     return `# Tutorial Scaffolds Bundle
 
-This bundle contains ${totalCount} tutorial ${options.format === 'scaffold' ? 'scaffolds' : 'tutorials'} generated from documentation.
+This bundle contains ${tutorials.length} tutorial ${options.format === 'scaffold' ? 'scaffolds' : 'tutorials'} generated from documentation.
 
-## Summary
-- **Total Tutorials**: ${totalCount}
+## Generation Summary
+- **Total Tutorials**: ${tutorials.length}
 - **Format**: ${options.format === 'scaffold' ? 'Scaffolds Only' : 'Full Content'}
 - **Content Type**: ${options.type === 'both' ? 'Text + Video' : options.type}
-- **Pre-generated Content**: ${generatedCount}/${totalCount} tutorials
+- **Pre-generated Content**: ${preGeneratedCount}/${tutorials.length} tutorials
+${options.format === 'full' ? `- **AI Generation Results**: ${stats.success} successful, ${stats.failed} used fallbacks` : ''}
 - **Generated**: ${new Date().toISOString()}
 
 ## Contents
@@ -241,14 +340,15 @@ ${options.format === 'full' ? `- Full tutorial content in ${options.type} format
 ## File Structure
 Each tutorial folder contains:
 - \`scaffold.md\`: The main scaffold file with outline and metadata
-- \`metadata.json\`: Additional tutorial metadata
+- \`metadata.json\`: Additional tutorial metadata and generation info
 ${options.format === 'full' && options.type.includes('text') ? '- \`full-tutorial.md\': Complete text tutorial' : ''}
 ${options.format === 'full' && options.type.includes('video') ? '- \`video-script.txt\': Video script' : ''}
 
-## Notes
-${options.format === 'full' && generatedCount < totalCount ? 
-  `⚠️ Some tutorials were automatically generated for this bundle. For best quality, generate each tutorial individually using the web interface.` : 
-  'All content has been individually generated and reviewed.'}
+## Quality Notes
+${options.format === 'full' && stats.failed > 0 ? 
+  `⚠️ ${stats.failed} tutorial(s) used template fallbacks due to generation issues. For best quality, generate these individually:\n${tutorials.filter(t => !t.generatedContent?.text && !t.generatedContent?.video).map(t => `- ${t.title}`).join('\n')}` : 
+  options.format === 'full' ? '✅ All tutorials were successfully generated using AI' :
+  'Scaffolds are ready for manual content creation'}
 `;
   }
 
@@ -314,10 +414,15 @@ ${tutorial.outline.map((section, index) => `${index + 1}. ${section}`).join('\n'
     URL.revokeObjectURL(url);
   }
 
-  static async downloadZipBundle(tutorials: TutorialScaffold[], options: { format: 'scaffold' | 'full', type: 'text' | 'video' | 'both' }) {
+  
+  static async downloadZipBundle(
+    tutorials: TutorialScaffold[], 
+    options: { format: 'scaffold' | 'full', type: 'text' | 'video' | 'both' },
+    originalUrl: string
+  ) {
     try {
-      const zipBlob = await this.createZipBundle(tutorials, options);
-      const url = URL.createObjectURL(zipBlob);
+      const { blob, stats } = await this.createZipBundle(tutorials, options, originalUrl);
+      const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
       
@@ -329,6 +434,13 @@ ${tutorial.outline.map((section, index) => `${index + 1}. ${section}`).join('\n'
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
+
+      // Show generation summary
+      if (options.format === 'full' && (stats.success > 0 || stats.failed > 0)) {
+        setTimeout(() => {
+          alert(`Bundle generation complete!\n\n✅ ${stats.success} tutorials generated with AI\n${stats.failed > 0 ? `⚠️ ${stats.failed} used templates (see README for details)` : 'All content AI-generated!'}`);
+        }, 500);
+      }
     } catch (error) {
       console.error('Error creating ZIP bundle:', error);
       throw new Error('Failed to create download bundle');

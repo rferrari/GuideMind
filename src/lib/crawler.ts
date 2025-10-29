@@ -2,8 +2,22 @@ import axios from 'axios';
 import * as cheerio from 'cheerio';
 
 export async function crawlDocumentation(baseUrl: string): Promise<string[]> {
+  // Validate URL
+  if (!baseUrl || typeof baseUrl !== 'string') {
+    console.error('Invalid URL provided to crawler:', baseUrl);
+    return [];
+  }
+
   try {
-    const response = await axios.get(baseUrl, {
+    // Ensure URL has protocol
+    let urlToCrawl = baseUrl;
+    if (!urlToCrawl.startsWith('http://') && !urlToCrawl.startsWith('https://')) {
+      urlToCrawl = `https://${urlToCrawl}`;
+    }
+
+    console.log('Crawling URL:', urlToCrawl);
+    
+    const response = await axios.get(urlToCrawl, {
       timeout: 10000,
       headers: {
         'User-Agent': 'TutorialGenerator/1.0'
@@ -33,10 +47,13 @@ export async function crawlDocumentation(baseUrl: string): Promise<string[]> {
     });
     
     // Remove duplicates and return unique content
-    return [...new Set(content)].slice(0, 50); // Limit to top 50 chunks
+    const uniqueContent = [...new Set(content)].slice(0, 50); // Limit to top 50 chunks
+    console.log(`Crawled ${uniqueContent.length} unique content chunks from ${urlToCrawl}`);
+    
+    return uniqueContent;
     
   } catch (error) {
-    console.error('Crawling failed:', error);
+    console.error('Crawling failed for URL:', baseUrl, error);
     return [];
   }
 }

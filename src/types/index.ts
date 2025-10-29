@@ -8,7 +8,8 @@ export interface TutorialScaffold {
     min: number;
     max: number;
   };
-  sourceUrl: string;
+  sourceUrl: string; // The specific documentation URL for this tutorial
+  originalBaseUrl?: string; // The original URL the user entered
   generatedContent?: {
     text?: string;
     video?: string;

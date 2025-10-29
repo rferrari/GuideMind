@@ -34,7 +34,7 @@ export default function GenerationModal({
       setIsEnhancing(false);
       generateTutorialContent();
     }
-  }, [isOpen, tutorial.id, type]); // Reset when tutorial ID or type changes
+  }, [isOpen, tutorial?.id, type]); // Reset when tutorial ID or type changes
 
   const generateTutorialContent = async (enhancementPrompt?: string) => {
     try {
