@@ -266,7 +266,7 @@ If you have any questions or need help:
 
 ---
 
-**Transform your documentation into engaging tutorials with intelligent AI-powered content generation!** 🚀
+**Transform your documentation into engaging tutorials with intelligent AI-powered content generation!**
 
 *Built with ❤️ for the ns.com community*
 
@@ -274,21 +274,21 @@ If you have any questions or need help:
 
 ---
 
-💡 **Enhancements Ideas**
+## 💡 **Enhancements Ideas**
 
 
 **Goal:** Improve robustness, scalability, and extraction quality of the documentation crawler and tutorial generation pipeline.
 
 ---
 
-## Architecture & Structure
+#### Architecture & Structure
 
 * [ ] Refactor crawler into modular files (`core`, `extractors`, `filters`, `utils`)
 * [ ] Add unit tests for URL validation, extraction, and link filtering
 
 ---
 
-## Crawling Improvements
+#### Crawling Improvements
 
 * [ ] Add request throttling / rate limiting (e.g., [`p-queue`](https://www.npmjs.com/package/p-queue))
 * [ ] Respect `robots.txt` rules (`robots-parser`)
@@ -299,7 +299,7 @@ If you have any questions or need help:
 
 ---
 
-## Content Processing
+#### Content Processing
 
 * [ ] Implement **semantic chunking** (group text by heading hierarchy for LLM)
 * [ ] Normalize encoding (handle non-UTF8 pages safely)
@@ -308,7 +308,7 @@ If you have any questions or need help:
 
 ---
 
-## Prompt & Generation Logic
+#### Prompt & Generation Logic
 
 * [ ] Auto-summarize long crawled docs before sending to LLM
 * [ ] Dynamically choose LLM model (e.g., `gpt-4-turbo` for large inputs, `gpt-4o-mini` for short)
@@ -317,7 +317,7 @@ If you have any questions or need help:
 
 ---
 
-## Logging, Error Handling & Monitoring
+#### Logging, Error Handling & Monitoring
 
 * [ ] Replace `console.log` with structured logger (`pino` or `winston`)
 * [ ] Categorize errors clearly (network / parsing / OpenAI / validation)
@@ -326,7 +326,7 @@ If you have any questions or need help:
 
 ---
 
-## Advanced Features
+#### Advanced Features
 
 * [ ] Add caching (Redis or local JSON store) to avoid re-crawling same URLs
 * [ ] Support `sitemap.xml` discovery for documentation domains
@@ -336,7 +336,7 @@ If you have any questions or need help:
 
 ---
 
-## Polish & UX
+#### Polish & UX
 
 * [ ] Normalize URLs (strip trailing slashes, ignore JS or anchor-only links)
 * [ ] Add configurable `CRAWLER_USER_AGENT` in `.env`
