@@ -10,37 +10,37 @@ const openai = new OpenAI({
 export async function POST(request: NextRequest) {
   try {
     const { tutorial, type, originalUrl, enhancementPrompt, existingContent } = await request.json();
-    
-    console.log('Generate tutorial request:', { 
-      tutorialTitle: tutorial?.title, 
-      type, 
+
+    console.log('Generate tutorial request:', {
+      tutorialTitle: tutorial?.title,
+      type,
       originalUrl,
       tutorialSourceUrl: tutorial?.sourceUrl,
       hasEnhancement: !!enhancementPrompt,
-      hasExistingContent: !!existingContent 
+      hasExistingContent: !!existingContent
     });
 
     let contentSample = '';
     let usedFallbackUrl = false;
-    
+
     // Only crawl for initial generation, not for enhancements
     if (!enhancementPrompt) {
       let urlToCrawl = tutorial?.sourceUrl || originalUrl;
-      
+
       if (urlToCrawl) {
         // Validate the URL before crawling
         console.log('Validating URL:', urlToCrawl);
         const validation = await validateUrl(urlToCrawl);
-        
+
         if (!validation.isValid) {
           console.warn(`URL validation failed for ${urlToCrawl}:`, validation.error);
-          
+
           // If the specific URL fails, fall back to the original URL
           if (urlToCrawl !== originalUrl && originalUrl) {
             console.log(`Falling back to original URL: ${originalUrl}`);
             urlToCrawl = originalUrl;
             usedFallbackUrl = true;
-            
+
             // Validate the fallback URL
             const fallbackValidation = await validateUrl(originalUrl);
             if (!fallbackValidation.isValid) {
@@ -51,14 +51,14 @@ export async function POST(request: NextRequest) {
             urlToCrawl = null;
           }
         }
-        
+
         if (urlToCrawl) {
           console.log('Crawling documentation from:', urlToCrawl);
           try {
             const content = await crawlDocumentation(urlToCrawl);
             contentSample = content.slice(0, 10).join('\n\n');
             console.log(`Crawled ${content.length} content chunks from ${urlToCrawl}`);
-            
+
             if (usedFallbackUrl) {
               console.log('⚠️ Used fallback URL for content generation');
             }
@@ -86,14 +86,14 @@ export async function POST(request: NextRequest) {
       prompt = generateVideoScriptPrompt(tutorial, contentSample, usedFallbackUrl);
     }
 
-    console.log('Sending request to OpenAI with prompt length:', prompt.length);
+    console.log('Sending request to LLM with prompt length:', prompt.length);
 
     const completion = await openai.chat.completions.create({
       model: process.env.OPENAI_LLM_MODEL || "gpt-3.5-turbo",
       messages: [
-        { 
-          role: "system", 
-          content: "You are an expert technical content creator. Create comprehensive, engaging content that helps people learn effectively." 
+        {
+          role: "system",
+          content: "You are an expert technical content creator. Create comprehensive, engaging content that helps people learn effectively."
         },
         { role: "user", content: prompt }
       ],
@@ -104,7 +104,7 @@ export async function POST(request: NextRequest) {
     const generatedContent = completion.choices[0]?.message?.content || '';
     console.log('Successfully generated content, length:', generatedContent.length);
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       content: generatedContent,
       metadata: {
         usedFallbackUrl,
@@ -113,7 +113,7 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('Tutorial generation error:', error);
-    return NextResponse.json({ 
+    return NextResponse.json({
       error: 'Failed to generate tutorial',
       details: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 });
@@ -121,7 +121,7 @@ export async function POST(request: NextRequest) {
 }
 
 function generateTextTutorialPrompt(tutorial: any, contentSample: string, usedFallbackUrl: boolean): string {
-  const urlNotice = usedFallbackUrl 
+  const urlNotice = usedFallbackUrl
     ? "NOTE: The specific documentation page was unavailable, so general documentation content was used instead."
     : "";
 
@@ -151,7 +151,7 @@ Make it practical, actionable, and suitable for the ${tutorial.difficulty} level
 }
 
 function generateVideoScriptPrompt(tutorial: any, contentSample: string, usedFallbackUrl: boolean): string {
-  const urlNotice = usedFallbackUrl 
+  const urlNotice = usedFallbackUrl
     ? "NOTE: The specific documentation page was unavailable, so general documentation content was used instead."
     : "";
 

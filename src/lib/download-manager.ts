@@ -1,9 +1,10 @@
 import JSZip from 'jszip';
 import { TutorialScaffold } from '@/types';
+import { ProgressStep } from '../components/ProgressModal';
 
 export class DownloadManager {
 
-private static progressCallback?: (step: any) => void;
+  private static progressCallback?: (step: any) => void;
 
   static setProgressCallback(callback: (step: any) => void) {
     this.progressCallback = callback;
@@ -19,8 +20,8 @@ private static progressCallback?: (step: any) => void;
     }
   }
 
- static async generateMissingContent(
-    tutorials: TutorialScaffold[], 
+  static async generateMissingContent(
+    tutorials: TutorialScaffold[],
     type: 'text' | 'video' | 'both',
     originalUrl: string
   ): Promise<{ tutorials: TutorialScaffold[], stats: { success: number, failed: number } }> {
@@ -39,11 +40,11 @@ private static progressCallback?: (step: any) => void;
 
     for (let i = 0; i < updatedTutorials.length; i++) {
       const tutorial = updatedTutorials[i];
-      
+
       // Generate missing text content
       if ((type === 'text' || type === 'both') && !tutorial.generatedContent?.text) {
         const progress = Math.round((completedOperations / totalOperations) * 100);
-        
+
         this.addProgress({
           type: 'generating',
           tutorialId: tutorial.id,
@@ -64,7 +65,7 @@ private static progressCallback?: (step: any) => void;
             }
           };
           successCount++;
-          
+
           completedOperations++;
           const newProgress = Math.round((completedOperations / totalOperations) * 100);
           this.addProgress({
@@ -87,7 +88,7 @@ private static progressCallback?: (step: any) => void;
             }
           };
           failedCount++;
-          
+
           completedOperations++;
           const newProgress = Math.round((completedOperations / totalOperations) * 100);
           this.addProgress({
@@ -99,14 +100,14 @@ private static progressCallback?: (step: any) => void;
             progress: newProgress
           });
         }
-        
-        await new Promise(resolve => setTimeout(resolve, 2000));
+
+        await new Promise(resolve => setTimeout(resolve, 10000));
       }
-      
+
       // Generate missing video content (similar pattern)
       if ((type === 'video' || type === 'both') && !tutorial.generatedContent?.video) {
         const progress = Math.round((completedOperations / totalOperations) * 100);
-        
+
         this.addProgress({
           type: 'generating',
           tutorialId: tutorial.id,
@@ -127,7 +128,7 @@ private static progressCallback?: (step: any) => void;
             }
           };
           successCount++;
-          
+
           completedOperations++;
           const newProgress = Math.round((completedOperations / totalOperations) * 100);
           this.addProgress({
@@ -150,7 +151,7 @@ private static progressCallback?: (step: any) => void;
             }
           };
           failedCount++;
-          
+
           completedOperations++;
           const newProgress = Math.round((completedOperations / totalOperations) * 100);
           this.addProgress({
@@ -162,11 +163,11 @@ private static progressCallback?: (step: any) => void;
             progress: newProgress
           });
         }
-        
-        await new Promise(resolve => setTimeout(resolve, 2000));
+
+        await new Promise(resolve => setTimeout(resolve, 7000));
       }
     }
-    
+
     this.addProgress({
       type: 'completed',
       message: `Generation complete: ${successCount} success, ${failedCount} failed`,
@@ -177,40 +178,49 @@ private static progressCallback?: (step: any) => void;
   }
 
   private static async callGenerateTutorialAPI(
-  tutorial: TutorialScaffold, 
-  contentType: 'text' | 'video', 
-  originalUrl: string
-): Promise<string> {
-  try {
-    console.log(`Calling API for ${tutorial.title} (${contentType}) with URL: ${originalUrl}`);
-    
-    const response = await fetch('/api/generate-tutorial', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        tutorial,
-        type: contentType,
-        originalUrl: originalUrl
-      }),
-    });
+    tutorial: TutorialScaffold,
+    contentType: 'text' | 'video',
+    originalUrl: string
+  ): Promise<string> {
+    try {
+      console.log(`Calling API for ${tutorial.title} (${contentType}) with URL: ${originalUrl}`);
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-      throw new Error(errorData.error || `API returned ${response.status}`);
-    }
+      const response = await fetch('/api/generate-tutorial', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tutorial,
+          type: contentType,
+          originalUrl: originalUrl
+        }),
+      });
 
-    const data = await response.json();
-    
-    if (!data.content) {
-      throw new Error('No content returned from API');
+      if (!response.ok) {
+        let errorMessage = `API returned ${response.status}`;
+
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorData.details || errorMessage;
+        } catch {
+          // If we can't parse JSON, use status text
+          errorMessage = response.statusText || errorMessage;
+        }
+
+        throw new Error(errorMessage);
+      }
+
+      const data = await response.json();
+
+      if (!data.content) {
+        throw new Error('No content returned from API');
+      }
+
+      return data.content;
+    } catch (error) {
+      console.error(`API call failed for ${tutorial.title}:`, error);
+      throw error;
     }
-    
-    return data.content;
-  } catch (error) {
-    console.error(`API call failed for ${tutorial.title}:`, error);
-    throw error;
   }
-}
 
   private static async generateTutorialContent(tutorial: TutorialScaffold, type: 'text' | 'video'): Promise<string> {
     try {
@@ -310,15 +320,61 @@ PRODUCTION NOTES:
 `;
   }
 
- 
-   static async createZipBundle(
-    tutorials: TutorialScaffold[], 
+
+  static async createDownloadBundle(
+    tutorials: TutorialScaffold[],
+    options: { format: 'scaffold' | 'full', type: 'text' | 'video' | 'both' },
+    originalUrl: string
+  ): Promise<{ blob: Blob; stats: { success: number; failed: number; total: number }; filename: string }> {
+    try {
+      const { blob, stats } = await this.createZipBundle(tutorials, options, originalUrl);
+
+      const dateStr = new Date().toISOString().split('T')[0];
+      const typeStr = options.format === 'scaffold' ? 'scaffolds' : 'full-content';
+      const filename = `tutorial-${typeStr}-${dateStr}.zip`;
+
+      // Add final success message
+      this.addProgress({
+        type: 'completed',
+        message: `✅ Bundle ready! ${stats.success} AI-generated, ${stats.failed} used templates`,
+        progress: 100
+      });
+
+      return { blob, stats, filename };
+
+    } catch (error) {
+      console.error('Error creating ZIP bundle:', error);
+
+      // Show error in progress modal
+      this.addProgress({
+        type: 'error',
+        message: `❌ Failed to create bundle: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        progress: 100
+      });
+
+      throw new Error('Failed to create download bundle');
+    }
+  }
+
+  static downloadBlob(blob: Blob, filename: string) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  static async createZipBundle(
+    tutorials: TutorialScaffold[],
     options: { format: 'scaffold' | 'full', type: 'text' | 'video' | 'both' },
     originalUrl: string
   ): Promise<{ blob: Blob, stats: { success: number, failed: number, total: number } }> {
     let tutorialsToBundle = tutorials;
     let generationStats = { success: 0, failed: 0, total: 0 };
-    
+
     this.addProgress({
       type: 'creating',
       message: 'Preparing bundle creation...',
@@ -349,9 +405,9 @@ PRODUCTION NOTES:
         progress: 30
       });
     }
-    
+
     const zip = new JSZip();
-    
+
     // Add CSV index
     this.addProgress({
       type: 'creating',
@@ -360,7 +416,7 @@ PRODUCTION NOTES:
     });
     const csvContent = this.generateCSV(tutorialsToBundle);
     zip.file('tutorial-scaffolds-index.csv', csvContent);
-    
+
     // Add README file
     this.addProgress({
       type: 'creating',
@@ -369,7 +425,7 @@ PRODUCTION NOTES:
     });
     const readmeContent = this.generateReadme(tutorialsToBundle, options, generationStats);
     zip.file('README.md', readmeContent);
-    
+
     // Add tutorial files
     this.addProgress({
       type: 'creating',
@@ -379,7 +435,7 @@ PRODUCTION NOTES:
 
     for (let i = 0; i < tutorialsToBundle.length; i++) {
       const tutorial = tutorialsToBundle[i];
-      const folderProgress = options.format === 'full' 
+      const folderProgress = options.format === 'full'
         ? 80 + Math.round((i / tutorialsToBundle.length) * 15)
         : 50 + Math.round((i / tutorialsToBundle.length) * 45);
 
@@ -393,25 +449,25 @@ PRODUCTION NOTES:
 
       const folderName = tutorial.title.toLowerCase().replace(/[^a-z0-9]/g, '-');
       const tutorialFolder = zip.folder(folderName);
-      
+
       if (tutorialFolder) {
         // Always include scaffold
         const scaffoldContent = await this.downloadScaffold(tutorial);
         tutorialFolder.file('scaffold.md', scaffoldContent);
-        
+
         // Include full content if requested
         if (options.format === 'full') {
           if (options.type === 'text' || options.type === 'both') {
             const textContent = await this.downloadFullContent(tutorial, 'text');
             tutorialFolder.file('full-tutorial.md', textContent);
           }
-          
+
           if (options.type === 'video' || options.type === 'both') {
             const videoContent = await this.downloadFullContent(tutorial, 'video');
             tutorialFolder.file('video-script.txt', videoContent);
           }
         }
-        
+
         // Add metadata file
         const metadata = {
           title: tutorial.title,
@@ -431,7 +487,7 @@ PRODUCTION NOTES:
         tutorialFolder.file('metadata.json', JSON.stringify(metadata, null, 2));
       }
     }
-    
+
     // Generate ZIP file
     this.addProgress({
       type: 'creating',
@@ -439,7 +495,7 @@ PRODUCTION NOTES:
       progress: 95
     });
 
-    const blob = await zip.generateAsync({ 
+    const blob = await zip.generateAsync({
       type: 'blob',
       compression: 'DEFLATE',
       compressionOptions: { level: 6 }
@@ -450,20 +506,20 @@ PRODUCTION NOTES:
       message: 'ZIP bundle created successfully!',
       progress: 100
     });
-    
+
     return { blob, stats: generationStats };
   }
 
   private static generateReadme(
-    tutorials: TutorialScaffold[], 
+    tutorials: TutorialScaffold[],
     options: { format: 'scaffold' | 'full', type: 'text' | 'video' | 'both' },
     stats: { success: number, failed: number, total: number }
   ): string {
-    const preGeneratedCount = tutorials.filter(t => 
+    const preGeneratedCount = tutorials.filter(t =>
       (options.type === 'text' || options.type === 'both') && t.generatedContent?.text ||
       (options.type === 'video' || options.type === 'both') && t.generatedContent?.video
     ).length;
-    
+
     return `# Tutorial Scaffolds Bundle
 
 This bundle contains ${tutorials.length} tutorial ${options.format === 'scaffold' ? 'scaffolds' : 'tutorials'} generated from documentation.
@@ -494,10 +550,10 @@ ${options.format === 'full' && options.type.includes('text') ? '- \`full-tutoria
 ${options.format === 'full' && options.type.includes('video') ? '- \`video-script.txt\': Video script' : ''}
 
 ## Quality Notes
-${options.format === 'full' && stats.failed > 0 ? 
-  `⚠️ ${stats.failed} tutorial(s) used template fallbacks due to generation issues. For best quality, generate these individually:\n${tutorials.filter(t => !t.generatedContent?.text && !t.generatedContent?.video).map(t => `- ${t.title}`).join('\n')}` : 
-  options.format === 'full' ? '✅ All tutorials were successfully generated using AI' :
-  'Scaffolds are ready for manual content creation'}
+${options.format === 'full' && stats.failed > 0 ?
+        `⚠️ ${stats.failed} tutorial(s) used template fallbacks due to generation issues. For best quality, generate these individually:\n${tutorials.filter(t => !t.generatedContent?.text && !t.generatedContent?.video).map(t => `- ${t.title}`).join('\n')}` :
+        options.format === 'full' ? '✅ All tutorials were successfully generated using AI' :
+          'Scaffolds are ready for manual content creation'}
 `;
   }
 
@@ -524,11 +580,11 @@ ${tutorial.outline.map((section, index) => `${index + 1}. ${section}`).join('\n'
     if (type === 'text' && tutorial.generatedContent?.text) {
       return tutorial.generatedContent.text;
     }
-    
+
     if (type === 'video' && tutorial.generatedContent?.video) {
       return tutorial.generatedContent.video;
     }
-    
+
     // Fallback to scaffold if no generated content
     return this.downloadScaffold(tutorial);
   }
@@ -547,7 +603,7 @@ ${tutorial.outline.map((section, index) => `${index + 1}. ${section}`).join('\n'
         `"${tutorial.sourceUrl.replace(/"/g, '""')}"`
       ].join(','))
     ].join('\n');
-    
+
     return csvContent;
   }
 
@@ -563,9 +619,9 @@ ${tutorial.outline.map((section, index) => `${index + 1}. ${section}`).join('\n'
     URL.revokeObjectURL(url);
   }
 
-  
+
   static async downloadZipBundle(
-    tutorials: TutorialScaffold[], 
+    tutorials: TutorialScaffold[],
     options: { format: 'scaffold' | 'full', type: 'text' | 'video' | 'both' },
     originalUrl: string
   ) {
@@ -574,24 +630,39 @@ ${tutorial.outline.map((section, index) => `${index + 1}. ${section}`).join('\n'
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      
+
       const dateStr = new Date().toISOString().split('T')[0];
       const typeStr = options.format === 'scaffold' ? 'scaffolds' : 'full-content';
       a.download = `tutorial-${typeStr}-${dateStr}.zip`;
-      
+
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
 
-      // Show generation summary
-      if (options.format === 'full' && (stats.success > 0 || stats.failed > 0)) {
-        setTimeout(() => {
-          alert(`Bundle generation complete!\n\n✅ ${stats.success} tutorials generated with AI\n${stats.failed > 0 ? `⚠️ ${stats.failed} used templates (see README for details)` : 'All content AI-generated!'}`);
-        }, 500);
-      }
+      // Add final success message and keep modal open for 2 seconds
+      this.addProgress({
+        type: 'completed',
+        message: `✅ Download complete! ${stats.success} AI-generated, ${stats.failed} used templates`,
+        progress: 100
+      });
+
+      // Wait 2 seconds before closing so user can see final status
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
     } catch (error) {
       console.error('Error creating ZIP bundle:', error);
+
+      // Show error in progress modal
+      this.addProgress({
+        type: 'error',
+        message: `❌ Failed to create bundle: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        progress: 100
+      });
+
+      // Keep error visible for 7 seconds
+      await new Promise(resolve => setTimeout(resolve, 7000));
+
       throw new Error('Failed to create download bundle');
     }
   }

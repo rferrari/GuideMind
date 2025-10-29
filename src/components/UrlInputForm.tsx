@@ -4,7 +4,7 @@ import { useState } from 'react';
 import ProgressModal from './ProgressModal';
 import GenerationModal from './GenerationModal';
 import RateLimitCard from './RateLimitCard';
-
+// import getFallbackTutorials from '@/lib/ai-generator';
 import { TutorialScaffold, DownloadOptions } from '@/types';
 import { AnimatedCard } from './AnimatedCard';
 import { DownloadManager } from '@/lib/download-manager';
@@ -26,34 +26,48 @@ export default function UrlInputForm() {
     includeEdited: true
   });
 
-   const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
     setTutorials([]);
     setRateLimit(null);
-    
+
     try {
       const response = await fetch('/api/crawl', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url }),
       });
-      
+
       const result = await response.json();
-      
+
       if (!response.ok) {
         if (result.error === 'rate_limit_exceeded') {
-          setRateLimit(result.rateLimit);
-          // Optionally show fallback tutorials
+          // Read retryAfter from the JSON response body (from crawl API)
+          const retryAfterSeconds = result.rateLimit?.retryAfter || 300;
+
+          console.log('Rate limit response:', {
+            retryAfter: result.rateLimit?.retryAfter,
+            message: result.rateLimit?.message
+          });
+
+          setRateLimit({
+            retryAfter: retryAfterSeconds,
+            message: result.rateLimit?.message || `Rate limit exceeded. Please try again in ${Math.ceil(retryAfterSeconds / 60)} minutes.`
+          });
+
+          // Show fallback tutorials if available
           if (result.fallbackTutorials) {
             setTutorials(result.fallbackTutorials);
+          } else {
+            // setTutorials(getFallbackTutorials(url));
           }
           return;
         }
         throw new Error(result.error || 'Failed to generate tutorials');
       }
-      
+
       setTutorials(result.tutorials);
     } catch (error) {
       console.error('Error:', error);
@@ -70,23 +84,41 @@ export default function UrlInputForm() {
 
   const generateNewIdeas = async () => {
     if (!url) return;
-    
+
     setIsLoading(true);
     setTutorials([]);
-    
+    setError('');
+    setRateLimit(null);
+
     try {
       const response = await fetch('/api/crawl', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url, regenerate: true }),
       });
-      
+
       const result = await response.json();
-      
+
       if (!response.ok) {
+        if (result.error === 'rate_limit_exceeded') {
+          // Read retryAfter from the JSON response body
+          const retryAfterSeconds = result.rateLimit?.retryAfter || 300;
+
+          setRateLimit({
+            retryAfter: retryAfterSeconds,
+            message: result.rateLimit?.message || `Rate limit exceeded. Please try again in ${Math.ceil(retryAfterSeconds / 60)} minutes.`
+          });
+
+          if (result.fallbackTutorials) {
+            setTutorials(result.fallbackTutorials);
+          } else {
+            // setTutorials(getFallbackTutorials(url));
+          }
+          return;
+        }
         throw new Error(result.error || 'Failed to generate tutorials');
       }
-      
+
       setTutorials(result.tutorials);
     } catch (error) {
       console.error('Error:', error);
@@ -112,23 +144,23 @@ export default function UrlInputForm() {
     }));
   };
 
- const downloadIndividualTutorial = async (tutorial: TutorialScaffold, type: 'text' | 'video' = 'text') => {
-  let content: string;
-  
-  if (downloadOptions.format === 'scaffold') {
-    content = await DownloadManager.downloadScaffold(tutorial);
-  } else {
-    content = await DownloadManager.downloadFullContent(tutorial, type);
-  }
-  
-  const extension = type === 'text' ? 'md' : 'txt';
-  const prefix = downloadOptions.format === 'scaffold' ? 'scaffold' : type;
-  const filename = `${prefix}-${tutorial.title.toLowerCase().replace(/[^a-z0-9]/g, '-')}.${extension}`;
-  
-  DownloadManager.downloadFile(content, filename);
-};
+  const downloadIndividualTutorial = async (tutorial: TutorialScaffold, type: 'text' | 'video' = 'text') => {
+    let content: string;
 
-const downloadAllTutorials = async () => {
+    if (downloadOptions.format === 'scaffold') {
+      content = await DownloadManager.downloadScaffold(tutorial);
+    } else {
+      content = await DownloadManager.downloadFullContent(tutorial, type);
+    }
+
+    const extension = type === 'text' ? 'md' : 'txt';
+    const prefix = downloadOptions.format === 'scaffold' ? 'scaffold' : type;
+    const filename = `${prefix}-${tutorial.title.toLowerCase().replace(/[^a-z0-9]/g, '-')}.${extension}`;
+
+    DownloadManager.downloadFile(content, filename);
+  };
+
+  const downloadAllTutorials = async () => {
     if (!url) {
       alert('Please enter a documentation URL first');
       return;
@@ -137,34 +169,50 @@ const downloadAllTutorials = async () => {
     try {
       setIsDownloading(true);
       setProgressModalOpen(true);
-      
+
       // Set up progress callback
       DownloadManager.setProgressCallback((step) => {
         console.log('Progress:', step);
       });
 
-      await DownloadManager.downloadZipBundle(
-        tutorials, 
+      // Create the bundle but don't download automatically
+      const { blob, filename } = await DownloadManager.createDownloadBundle(
+        tutorials,
         {
           format: downloadOptions.format,
           type: downloadOptions.type
         },
         url
       );
-      
+
+      // Store the blob for later download
+      setDownloadBlob(blob);
+      setDownloadFilename(filename);
+
     } catch (error) {
       console.error('Download error:', error);
-      alert('Failed to create download bundle. Please try again.');
+      // Error is already shown in the progress modal
     } finally {
-      setIsDownloading(false);
-      setProgressModalOpen(false);
+      // Don't close the modal - let user see results and click download
     }
   };
 
-const downloadCSVOnly = () => {
-  const csvContent = DownloadManager.generateCSV(tutorials);
-  DownloadManager.downloadFile(csvContent, 'tutorial-scaffolds-index.csv');
-};
+  // Add new state for download data
+  const [downloadBlob, setDownloadBlob] = useState<Blob | null>(null);
+  const [downloadFilename, setDownloadFilename] = useState<string>('');
+
+  // Handle the actual download
+  const handleDownload = (blob: Blob, filename: string) => {
+    DownloadManager.downloadBlob(blob, filename);
+    setProgressModalOpen(false);
+    setDownloadBlob(null);
+    setDownloadFilename('');
+  };
+
+  const downloadCSVOnly = () => {
+    const csvContent = DownloadManager.generateCSV(tutorials);
+    DownloadManager.downloadFile(csvContent, 'tutorial-scaffolds-index.csv');
+  };
 
   const openGenerationModal = (tutorial: TutorialScaffold, type: 'text' | 'video') => {
     setSelectedTutorial(tutorial);
@@ -184,7 +232,7 @@ const downloadCSVOnly = () => {
             id="url"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
-            placeholder="https://docs.github.com/en"
+            placeholder="https://render.com/docs"
             className="mt-1 block w-full rounded-md bg-gray-800 border-gray-600 text-white placeholder-gray-400 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border"
             required
           />
@@ -207,7 +255,7 @@ const downloadCSVOnly = () => {
               'Generate Tutorial Ideas'
             )}
           </button>
-          
+
           {tutorials.length > 0 && (
             <button
               type="button"
@@ -225,11 +273,13 @@ const downloadCSVOnly = () => {
         isOpen={progressModalOpen}
         totalTutorials={tutorials.length}
         downloadOptions={downloadOptions}
+        onDownload={downloadBlob ? () => handleDownload(downloadBlob, downloadFilename) : undefined}
         onCancel={() => {
-          // Optional: Implement cancellation logic
           setIsDownloading(false);
           setProgressModalOpen(false);
         }}
+        downloadReady={!!downloadBlob}
+        onClose={() => setProgressModalOpen(false)}
       />
 
       {error && (
@@ -238,9 +288,9 @@ const downloadCSVOnly = () => {
         </div>
       )}
 
-{rateLimit && (
+      {rateLimit && (
         <AnimatedCard index={0}>
-          <RateLimitCard 
+          <RateLimitCard
             retryAfter={rateLimit.retryAfter}
             onRetry={handleRetry}
           />
@@ -273,7 +323,7 @@ const downloadCSVOnly = () => {
                     />
                     <span className="text-gray-300">Full Content</span>
                   </label>
-                  
+
                   <label className="flex items-center gap-2">
                     <span className="text-gray-300">Type:</span>
                     <select
@@ -288,7 +338,7 @@ const downloadCSVOnly = () => {
                   </label>
                 </div>
               </div>
-              
+
               <div className="flex gap-2">
                 <button
                   onClick={downloadCSVOnly}
@@ -297,27 +347,27 @@ const downloadCSVOnly = () => {
                   Download CSV Only
                 </button>
                 <button
-  onClick={downloadAllTutorials}
-  disabled={isLoading}
-  className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors text-sm"
->
-  {isLoading ? (
-    <span className="flex items-center gap-2">
-      <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-      </svg>
-      {downloadOptions.format === 'full' ? 'Generating Content...' : 'Creating Bundle...'}
-    </span>
-  ) : (
-    'Download All Files'
-  )}
-</button>
+                  onClick={downloadAllTutorials}
+                  disabled={isLoading}
+                  className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors text-sm"
+                >
+                  {isLoading ? (
+                    <span className="flex items-center gap-2">
+                      <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      {downloadOptions.format === 'full' ? 'Generating Content...' : 'Creating Bundle...'}
+                    </span>
+                  ) : (
+                    'Download All Files'
+                  )}
+                </button>
               </div>
             </div>
-            
+
             <div className="mt-3 text-xs text-gray-400">
-              {downloadOptions.format === 'scaffold' 
+              {downloadOptions.format === 'scaffold'
                 ? 'Scaffolds include titles, outlines, and metadata - perfect for contributors to expand upon.'
                 : 'Full content includes AI-generated tutorials or video scripts.'}
             </div>
@@ -326,7 +376,7 @@ const downloadCSVOnly = () => {
           <div className="flex justify-between items-center">
             <h2 className="text-2xl font-bold text-white">Generated Tutorials ({tutorials.length})</h2>
           </div>
-          
+
           <div className="grid gap-6">
             {tutorials.map((tutorial, index) => (
               <AnimatedCard key={tutorial.id} index={index}>
@@ -355,15 +405,14 @@ const downloadCSVOnly = () => {
                       </button>
                     </div>
                   </div>
-                  
+
                   <p className="text-gray-300 mb-4 leading-relaxed">{tutorial.summary}</p>
-                  
+
                   <div className="flex gap-4 mb-4">
-                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                      tutorial.difficulty === 'beginner' ? 'bg-green-900/50 text-green-300 border border-green-700' :
+                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${tutorial.difficulty === 'beginner' ? 'bg-green-900/50 text-green-300 border border-green-700' :
                       tutorial.difficulty === 'intermediate' ? 'bg-yellow-900/50 text-yellow-300 border border-yellow-700' :
-                      'bg-red-900/50 text-red-300 border border-red-700'
-                    }`}>
+                        'bg-red-900/50 text-red-300 border border-red-700'
+                      }`}>
                       {tutorial.difficulty}
                     </span>
                     <span className="text-gray-400 bg-gray-700 px-3 py-1 rounded-full text-sm">
@@ -375,7 +424,7 @@ const downloadCSVOnly = () => {
                       </span>
                     )}
                   </div>
-                  
+
                   <div className="mt-4">
                     <h4 className="font-semibold text-gray-200 mb-3 text-lg">Outline</h4>
                     <ol className="space-y-2">

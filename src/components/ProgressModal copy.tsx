@@ -17,27 +17,34 @@ interface ProgressModalProps {
   isOpen: boolean;
   totalTutorials: number;
   downloadOptions: { format: 'scaffold' | 'full', type: 'text' | 'video' | 'both' };
-  onDownload?: (blob: Blob, filename: string) => void;
   onCancel?: () => void;
-  downloadReady?: boolean;
-  onClose?: () => void;
 }
 
 export default function ProgressModal({
   isOpen,
   totalTutorials,
   downloadOptions,
-  onDownload,
-  onCancel,
-  downloadReady = false,
-  onClose
+  onCancel
 }: ProgressModalProps) {
   const [steps, setSteps] = useState<ProgressStep[]>([]);
   const [currentProgress, setCurrentProgress] = useState(0);
-  const [isComplete, setIsComplete] = useState(false);
+  const [rateLimit, setRateLimit] = useState<{ retryAfter: number; message: string } | null>(null);
   const [hasErrors, setHasErrors] = useState(false);
 
-  // Reset state when modal opens
+  // Update when receiving progress steps
+  useEffect(() => {
+    if (typeof window !== 'undefined' && (window as any).addProgressStep) {
+      const originalAddProgressStep = (window as any).addProgressStep;
+      (window as any).addProgressStep = (step: any) => {
+        if (step.type === 'error') {
+          setHasErrors(true);
+        }
+        originalAddProgressStep(step);
+      };
+    }
+  }, []);
+
+  // Add initial steps when modal opens
   useEffect(() => {
     if (isOpen) {
       const initialSteps: ProgressStep[] = [
@@ -51,12 +58,10 @@ export default function ProgressModal({
       ];
       setSteps(initialSteps);
       setCurrentProgress(0);
-      setIsComplete(false);
-      setHasErrors(false);
     }
   }, [isOpen]);
 
-  // Function to add progress steps
+  // Function to add progress steps (to be called from DownloadManager)
   const addProgressStep = (step: Omit<ProgressStep, 'id' | 'timestamp'>) => {
     const newStep: ProgressStep = {
       ...step,
@@ -66,14 +71,6 @@ export default function ProgressModal({
 
     setSteps(prev => [...prev, newStep]);
     setCurrentProgress(step.progress);
-
-    // Check if complete or has errors
-    if (step.type === 'completed' && step.progress === 100) {
-      setIsComplete(true);
-    }
-    if (step.type === 'error') {
-      setHasErrors(true);
-    }
   };
 
   // Expose addProgressStep to parent
@@ -89,19 +86,6 @@ export default function ProgressModal({
     };
   }, [isOpen]);
 
-  const handleDownload = () => {
-    if (onDownload) {
-      // This will be provided by the parent component
-      onDownload(new Blob(), 'tutorial-bundle.zip');
-    }
-  };
-
-  const handleClose = () => {
-    if (onClose) {
-      onClose();
-    }
-  };
-
   if (!isOpen) return null;
 
   const currentStep = steps[steps.length - 1];
@@ -116,7 +100,7 @@ export default function ProgressModal({
         <div className="flex justify-between items-center p-6 border-b border-gray-700">
           <div>
             <h2 className="text-xl font-bold text-white">
-              {isComplete ? 'Bundle Ready!' : 'Creating Tutorial Bundle'}
+              Creating Tutorial Bundle
             </h2>
             <p className="text-gray-400 text-sm mt-1">
               {downloadOptions.format === 'scaffold' ? 'Scaffolds Only' : 'Full Content'} • {downloadOptions.type}
@@ -134,8 +118,7 @@ export default function ProgressModal({
         <div className="px-6 pt-4">
           <div className="w-full bg-gray-700 rounded-full h-2">
             <div
-              className={`h-2 rounded-full transition-all duration-500 ${hasErrors ? 'bg-red-500' : isComplete ? 'bg-green-500' : 'bg-blue-600'
-                }`}
+              className="bg-blue-600 h-2 rounded-full transition-all duration-500"
               style={{ width: `${currentProgress}%` }}
             />
           </div>
@@ -147,9 +130,9 @@ export default function ProgressModal({
             {steps.map((step, index) => (
               <div key={step.id} className="flex items-start gap-3">
                 <div className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-sm ${step.type === 'completed' ? 'bg-green-500 text-white' :
-                    step.type === 'error' ? 'bg-red-500 text-white' :
-                      step.type === 'generating' ? 'bg-blue-500 text-white animate-pulse' :
-                        'bg-gray-600 text-gray-300'
+                  step.type === 'error' ? 'bg-red-500 text-white' :
+                    step.type === 'generating' ? 'bg-blue-500 text-white animate-pulse' :
+                      'bg-gray-600 text-gray-300'
                   }`}>
                   {step.type === 'completed' ? '✓' :
                     step.type === 'error' ? '✕' :
@@ -177,23 +160,38 @@ export default function ProgressModal({
             ))}
           </div>
 
-          {/* Completion Message */}
-          {isComplete && (
-            <div className={`mt-6 p-4 rounded-lg ${hasErrors ? 'bg-yellow-900/20 border border-yellow-700' : 'bg-green-900/20 border border-green-700'
-              }`}>
+          {rateLimit && (
+            <div className="mt-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
               <div className="flex items-center gap-3">
-                <div className={`text-2xl ${hasErrors ? 'text-yellow-400' : 'text-green-400'}`}>
-                  {hasErrors ? '⚠️' : '✅'}
-                </div>
+                <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
                 <div>
-                  <p className={`text-sm font-medium ${hasErrors ? 'text-yellow-300' : 'text-green-300'}`}>
-                    {hasErrors ? 'Bundle created with some templates' : 'Bundle created successfully!'}
+                  <p className="text-sm font-medium text-red-800 dark:text-red-300">Rate Limit Reached</p>
+                  <p className="text-xs text-red-600 dark:text-red-400 mt-1">
+                    Please wait {Math.ceil(rateLimit.retryAfter / 60)} minutes before retrying
                   </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Current Status */}
+          {currentStep && (
+            <div className="mt-6 p-4 bg-gray-700 rounded-lg">
+              <div className="flex items-center gap-3">
+                {isGenerating ? (
+                  <svg className="animate-spin h-5 w-5 text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                ) : (
+                  <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+                )}
+                <div>
+                  <p className="text-sm font-medium text-white">{currentStep.message}</p>
                   <p className="text-xs text-gray-400 mt-1">
-                    {hasErrors
-                      ? 'Some tutorials used fallback templates due to generation issues.'
-                      : 'All content has been generated and bundled.'
-                    }
+                    Processing {totalTutorials} tutorials • {downloadOptions.type} content
                   </p>
                 </div>
               </div>
@@ -206,33 +204,13 @@ export default function ProgressModal({
           <div className="text-sm text-gray-400">
             {steps.length} steps • {Math.round((Date.now() - (steps[0]?.timestamp.getTime() || Date.now())) / 1000)}s
           </div>
-
-          <div className="flex gap-2">
-            {!isComplete ? (
-              <button
-                onClick={onCancel}
-                disabled={!isGenerating}
-                className="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-500 disabled:bg-gray-700 disabled:text-gray-400 disabled:cursor-not-allowed transition-colors"
-              >
-                Cancel
-              </button>
-            ) : (
-              <>
-                <button
-                  onClick={handleClose}
-                  className="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-500 transition-colors"
-                >
-                  Close
-                </button>
-                <button
-                  onClick={handleDownload}
-                  className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
-                >
-                  📥 Download ZIP
-                </button>
-              </>
-            )}
-          </div>
+          <button
+            onClick={onCancel}
+            disabled={!isGenerating}
+            className="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-500 disabled:bg-gray-700 disabled:text-gray-400 disabled:cursor-not-allowed transition-colors"
+          >
+            Cancel
+          </button>
         </div>
       </div>
     </div>

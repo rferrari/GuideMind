@@ -8,43 +8,43 @@ const openai = new OpenAI({
 });
 
 
+// not used anymore
+// function parseAIResponse(response: string): any {
+//   console.log('Raw AI response:', response);
 
-function parseAIResponse(response: string): any {
-  console.log('Raw AI response:', response);
-  
-  const parsingAttempts = [
-    // Attempt 1: Direct parse
-    () => JSON.parse(response.trim()),
-    
-    // Attempt 2: Remove markdown code blocks
-    () => JSON.parse(response.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim()),
-    
-    // Attempt 3: Extract JSON from text
-    () => {
-      const jsonMatch = response.match(/\{[\s\S]*\}/);
-      if (!jsonMatch) throw new Error('No JSON found');
-      return JSON.parse(jsonMatch[0]);
-    },
-    
-    // Attempt 4: Remove "json" prefix
-    () => JSON.parse(response.replace(/^json\s*/i, '').trim()),
-  ];
+//   const parsingAttempts = [
+//     // Attempt 1: Direct parse
+//     () => JSON.parse(response.trim()),
 
-  for (const attempt of parsingAttempts) {
-    try {
-      return attempt();
-    } catch (error) {
-      // Continue to next attempt
-      console.log('Parsing attempt failed:', error.message);
-    }
-  }
-  
-  throw new Error('All parsing attempts failed');
-}
+//     // Attempt 2: Remove markdown code blocks
+//     () => JSON.parse(response.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim()),
+
+//     // Attempt 3: Extract JSON from text
+//     () => {
+//       const jsonMatch = response.match(/\{[\s\S]*\}/);
+//       if (!jsonMatch) throw new Error('No JSON found');
+//       return JSON.parse(jsonMatch[0]);
+//     },
+
+//     // Attempt 4: Remove "json" prefix
+//     () => JSON.parse(response.replace(/^json\s*/i, '').trim()),
+//   ];
+
+//   for (const attempt of parsingAttempts) {
+//     try {
+//       return attempt();
+//     } catch (error) {
+//       // Continue to next attempt
+//       console.log('Parsing attempt failed:', error.message);
+//     }
+//   }
+
+//   throw new Error('All parsing attempts failed');
+// }
 
 // export async function generateTutorialIdeas(content: string[]): Promise<TutorialScaffold[]> {
 //   const contentSample = content.slice(0, 5).join('\n\n');
-  
+
 //   const prompt = `
 // You are an expert technical content strategist. Analyze this documentation content and suggest 3-5 tutorial ideas.
 
@@ -106,7 +106,7 @@ function parseAIResponse(response: string): any {
 // export async function generateTutorialIdeas(crawledData: CrawledPage): Promise<TutorialScaffold[]> {
 //   const contentSample = crawledData.content.slice(0, 5).join('\n\n');
 //   const linksSample = crawledData.links.slice(0, 10).join('\n');
-  
+
 //   const prompt = `
 // You are an expert technical content strategist. Analyze this documentation content and suggest 3-5 tutorial ideas.
 
@@ -162,7 +162,7 @@ function parseAIResponse(response: string): any {
 
 //     const cleanedResponse = cleanJsonResponse(response);
 //     const parsed = JSON.parse(cleanedResponse);
-    
+
 //     // Validate that sourceUrls are from the allowed list
 //     const allowedUrls = [crawledData.url, ...crawledData.links];
 //     const validatedTutorials = parsed.tutorials.map((tutorial: any) => {
@@ -172,7 +172,7 @@ function parseAIResponse(response: string): any {
 //       }
 //       return tutorial;
 //     });
-    
+
 //     return validatedTutorials;
 //   } catch (error) {
 //     console.error('AI Generation error:', error);
@@ -227,9 +227,9 @@ Respond with valid JSON only:
     const completion = await openai.chat.completions.create({
       model: process.env.OPENAI_LLM_MODEL || "gpt-3.5-turbo",
       messages: [
-        { 
-          role: "system", 
-          content: "You are a technical content expert. Always respond with valid JSON. Only use URLs from the provided list." 
+        {
+          role: "system",
+          content: "You are a technical content expert. Always respond with valid JSON. Only use URLs from the provided list."
         },
         { role: "user", content: generateIdeasPrompt }
       ],
@@ -242,7 +242,7 @@ Respond with valid JSON only:
 
     const cleanedResponse = cleanJsonResponse(response);
     const parsed = JSON.parse(cleanedResponse);
-    
+
     // Validate that sourceUrls are from the allowed list
     const allowedUrls = [crawledData.url, ...crawledData.links];
     const validatedTutorials = parsed.tutorials.map((tutorial: any) => {
@@ -252,27 +252,28 @@ Respond with valid JSON only:
       }
       return tutorial;
     });
-    
+
     return { tutorials: validatedTutorials };
   } catch (error: any) {
     console.error('AI Generation error:', error);
-    
+
     // Check for rate limit errors
     if (error.status === 429) {
-      const retryAfter = error.headers?.['retry-after'] ? parseInt(error.headers['retry-after']) : 300;
+      // const retryAfter = error.headers["#headersList"].entries["retry-after"] ? parseInt(error.headers["#headersList"].entries["retry-after"]) : 300;
+      const retryAfter = 300;
       const message = error.message || 'Rate limit exceeded';
-      
+
       console.log(`Rate limit detected. Retry after: ${retryAfter} seconds`);
-      
-      return { 
-        tutorials: null, 
-        rateLimit: { 
-          retryAfter, 
-          message 
-        } 
+
+      return {
+        tutorials: null,
+        rateLimit: {
+          retryAfter,
+          message
+        }
       };
     }
-    
+
     // For other errors, return fallback tutorials
     return { tutorials: getFallbackTutorials(crawledData.url) };
   }
@@ -280,29 +281,29 @@ Respond with valid JSON only:
 
 function cleanJsonResponse(response: string): string {
   console.log('Raw AI response:', response);
-  
+
   // Remove markdown code blocks
   let cleaned = response.replace(/```json\s*/g, '').replace(/```\s*/g, '');
-  
+
   // Remove any leading/trailing whitespace
   cleaned = cleaned.trim();
-  
+
   // If the response starts with "json" remove it
   if (cleaned.startsWith('json')) {
     cleaned = cleaned.slice(4).trim();
   }
-  
+
   // Try to extract JSON if there's other text
   const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
   if (jsonMatch) {
     cleaned = jsonMatch[0];
   }
-  
+
   console.log('Cleaned response:', cleaned);
   return cleaned;
 }
 
-function getFallbackTutorials(mainUrl: string): TutorialScaffold[] {
+export function getFallbackTutorials(mainUrl: string): TutorialScaffold[] {
   return [
     {
       id: 'fallback-1',

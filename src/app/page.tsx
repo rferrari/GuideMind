@@ -8,23 +8,23 @@ export default function Home() {
           GuideMind
         </h1>
         <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-        AI that understands docs and teaches them back.
+          AI that understands docs and teaches them back.
         </p>
         <br />
         <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-          Transform documentation into ready to create tutorial with AI. 
+          Transform documentation into ready to create tutorial with AI.
           Generate outlines, estimate Task Payouts rewards, and kickstart your content creation.
         </p>
       </div>
-      
+
       <UrlInputForm />
-      
+
       <div className="mt-12 text-center text-gray-500 text-sm">
         <p>Try it with documentation sites like:</p>
         <div className="flex justify-center gap-4 mt-2 flex-wrap">
-          <span className="bg-gray-800 px-3 py-1 rounded-md">https://docs.github.com</span>
+          <span className="bg-gray-800 px-3 py-1 rounded-md">https://render.com/docs</span>
           <span className="bg-gray-800 px-3 py-1 rounded-md">https://supabase.com/docs</span>
-          <span className="bg-gray-800 px-3 py-1 rounded-md">https://docs.skatehive.app/docs/</span>
+          <span className="bg-gray-800 px-3 py-1 rounded-md">https://console.groq.com/docs/overview</span>
         </div>
       </div>
     </main>
