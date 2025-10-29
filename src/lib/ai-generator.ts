@@ -8,6 +8,7 @@ const openai = new OpenAI({
 });
 
 
+
 function parseAIResponse(response: string): any {
   console.log('Raw AI response:', response);
   
@@ -100,11 +101,92 @@ function parseAIResponse(response: string): any {
 //   }
 // }
 
-export async function generateTutorialIdeas(crawledData: CrawledPage): Promise<TutorialScaffold[]> {
+
+
+// export async function generateTutorialIdeas(crawledData: CrawledPage): Promise<TutorialScaffold[]> {
+//   const contentSample = crawledData.content.slice(0, 5).join('\n\n');
+//   const linksSample = crawledData.links.slice(0, 10).join('\n');
+  
+//   const prompt = `
+// You are an expert technical content strategist. Analyze this documentation content and suggest 3-5 tutorial ideas.
+
+// MAIN DOCUMENTATION PAGE: ${crawledData.title}
+// URL: ${crawledData.url}
+
+// DOCUMENTATION CONTENT:
+// ${contentSample}
+
+// AVAILABLE DOCUMENTATION LINKS (use these for sourceUrl):
+// ${linksSample}
+
+// Generate tutorial scaffolds with:
+// - Clear, action-oriented titles
+// - Brief summaries that explain the value
+// - Logical learning progression in the outline
+// - Appropriate difficulty level (beginner/intermediate/advanced)
+// - Realistic cost estimates for tutorial creation ($100-500 range)
+// - sourceUrl MUST be one of the available links above or the main URL
+
+// Respond with valid JSON only:
+// {
+//   "tutorials": [
+//     {
+//       "id": "unique-id",
+//       "title": "Tutorial Title",
+//       "summary": "Brief description",
+//       "outline": ["Section 1", "Section 2", "Section 3"],
+//       "difficulty": "beginner|intermediate|advanced",
+//       "estimatedCost": {"min": 100, "max": 300},
+//       "sourceUrl": "https://real-existing-url-from-the-list.com/page"
+//     }
+//   ]
+// }
+// `;
+
+//   try {
+//     const completion = await openai.chat.completions.create({
+//       model: process.env.OPENAI_LLM_MODEL || "gpt-3.5-turbo",
+//       messages: [
+//         { 
+//           role: "system", 
+//           content: "You are a technical content expert. Always respond with valid JSON. Only use URLs from the provided list." 
+//         },
+//         { role: "user", content: prompt }
+//       ],
+//       temperature: 0.7,
+//       max_tokens: 2000,
+//     });
+
+//     const response = completion.choices[0]?.message?.content;
+//     if (!response) throw new Error('No response from AI');
+
+//     const cleanedResponse = cleanJsonResponse(response);
+//     const parsed = JSON.parse(cleanedResponse);
+    
+//     // Validate that sourceUrls are from the allowed list
+//     const allowedUrls = [crawledData.url, ...crawledData.links];
+//     const validatedTutorials = parsed.tutorials.map((tutorial: any) => {
+//       if (!allowedUrls.includes(tutorial.sourceUrl)) {
+//         console.warn(`AI used invalid URL: ${tutorial.sourceUrl}, falling back to main URL`);
+//         tutorial.sourceUrl = crawledData.url;
+//       }
+//       return tutorial;
+//     });
+    
+//     return validatedTutorials;
+//   } catch (error) {
+//     console.error('AI Generation error:', error);
+//     return getFallbackTutorials(crawledData.url);
+//   }
+// }
+
+
+export async function generateTutorialIdeas(crawledData: CrawledPage): Promise<{ tutorials: TutorialScaffold[] | null, rateLimit?: { retryAfter: number; message: string } }> {
   const contentSample = crawledData.content.slice(0, 5).join('\n\n');
   const linksSample = crawledData.links.slice(0, 10).join('\n');
-  
-  const prompt = `
+
+
+  const generateIdeasPrompt = `
 You are an expert technical content strategist. Analyze this documentation content and suggest 3-5 tutorial ideas.
 
 MAIN DOCUMENTATION PAGE: ${crawledData.title}
@@ -140,6 +222,7 @@ Respond with valid JSON only:
 }
 `;
 
+
   try {
     const completion = await openai.chat.completions.create({
       model: process.env.OPENAI_LLM_MODEL || "gpt-3.5-turbo",
@@ -148,7 +231,7 @@ Respond with valid JSON only:
           role: "system", 
           content: "You are a technical content expert. Always respond with valid JSON. Only use URLs from the provided list." 
         },
-        { role: "user", content: prompt }
+        { role: "user", content: generateIdeasPrompt }
       ],
       temperature: 0.7,
       max_tokens: 2000,
@@ -170,13 +253,30 @@ Respond with valid JSON only:
       return tutorial;
     });
     
-    return validatedTutorials;
-  } catch (error) {
+    return { tutorials: validatedTutorials };
+  } catch (error: any) {
     console.error('AI Generation error:', error);
-    return getFallbackTutorials(crawledData.url);
+    
+    // Check for rate limit errors
+    if (error.status === 429) {
+      const retryAfter = error.headers?.['retry-after'] ? parseInt(error.headers['retry-after']) : 300;
+      const message = error.message || 'Rate limit exceeded';
+      
+      console.log(`Rate limit detected. Retry after: ${retryAfter} seconds`);
+      
+      return { 
+        tutorials: null, 
+        rateLimit: { 
+          retryAfter, 
+          message 
+        } 
+      };
+    }
+    
+    // For other errors, return fallback tutorials
+    return { tutorials: getFallbackTutorials(crawledData.url) };
   }
 }
-
 
 function cleanJsonResponse(response: string): string {
   console.log('Raw AI response:', response);
@@ -202,30 +302,15 @@ function cleanJsonResponse(response: string): string {
   return cleaned;
 }
 
-// function getFallbackTutorials(): TutorialScaffold[] {
-//   return [
-//     {
-//       id: 'fallback-1',
-//       title: 'Understanding Basic Concepts',
-//       summary: 'Learn the fundamental concepts from this documentation',
-//       outline: ['Introduction', 'Core Concepts', 'Practical Examples', 'Next Steps'],
-//       difficulty: 'beginner',
-//       estimatedCost: { min: 150, max: 350 },
-//       sourceUrl: 'https://docs.github.com/en'
-//     }
-//   ];
-// }
-
-
 function getFallbackTutorials(mainUrl: string): TutorialScaffold[] {
   return [
     {
       id: 'fallback-1',
-      title: 'Getting Started Guide',
-      summary: 'Learn the fundamental concepts from this documentation',
-      outline: ['Introduction', 'Core Concepts', 'Practical Examples', 'Next Steps'],
-      difficulty: 'beginner',
-      estimatedCost: { min: 150, max: 350 },
+      title: '🤖 Robot Overload!',
+      summary: 'Our AI assistant is having a moment. Even robots need to recharge!',
+      outline: ['AI service temporarily unavailable', 'Network connection issue', 'Rate limit exceeded', 'Others'],
+      difficulty: 'advanced',
+      estimatedCost: { min: 100, max: 9999 },
       sourceUrl: mainUrl
     }
   ];

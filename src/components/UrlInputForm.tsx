@@ -3,11 +3,14 @@
 import { useState } from 'react';
 import ProgressModal from './ProgressModal';
 import GenerationModal from './GenerationModal';
+import RateLimitCard from './RateLimitCard';
+
 import { TutorialScaffold, DownloadOptions } from '@/types';
 import { AnimatedCard } from './AnimatedCard';
 import { DownloadManager } from '@/lib/download-manager';
 
 export default function UrlInputForm() {
+  const [rateLimit, setRateLimit] = useState<{ retryAfter: number; message: string } | null>(null);
   const [progressModalOpen, setProgressModalOpen] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   const [url, setUrl] = useState('');
@@ -23,11 +26,12 @@ export default function UrlInputForm() {
     includeEdited: true
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
+   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
     setTutorials([]);
+    setRateLimit(null);
     
     try {
       const response = await fetch('/api/crawl', {
@@ -39,6 +43,14 @@ export default function UrlInputForm() {
       const result = await response.json();
       
       if (!response.ok) {
+        if (result.error === 'rate_limit_exceeded') {
+          setRateLimit(result.rateLimit);
+          // Optionally show fallback tutorials
+          if (result.fallbackTutorials) {
+            setTutorials(result.fallbackTutorials);
+          }
+          return;
+        }
         throw new Error(result.error || 'Failed to generate tutorials');
       }
       
@@ -49,6 +61,11 @@ export default function UrlInputForm() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleRetry = () => {
+    setRateLimit(null);
+    handleSubmit(new Event('submit') as any);
   };
 
   const generateNewIdeas = async () => {
@@ -219,6 +236,15 @@ const downloadCSVOnly = () => {
         <div className="bg-red-900/50 border border-red-700 rounded-md p-4">
           <p className="text-red-200">{error}</p>
         </div>
+      )}
+
+{rateLimit && (
+        <AnimatedCard index={0}>
+          <RateLimitCard 
+            retryAfter={rateLimit.retryAfter}
+            onRetry={handleRetry}
+          />
+        </AnimatedCard>
       )}
 
       {tutorials.length > 0 && (
