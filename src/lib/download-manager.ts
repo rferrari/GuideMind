@@ -23,19 +23,33 @@ export class DownloadManager {
   static async generateMissingContent(
     tutorials: TutorialScaffold[],
     type: 'text' | 'video' | 'both',
-    originalUrl: string
+    originalUrl: string,
+    progressRange: { start: number; end: number } = { start: 0, end: 100 } // Add progress range parameter
   ): Promise<{ tutorials: TutorialScaffold[], stats: { success: number, failed: number } }> {
     const updatedTutorials = [...tutorials];
     let successCount = 0;
     let failedCount = 0;
 
-    const totalOperations = tutorials.length * (type === 'both' ? 2 : 1);
+    // Calculate total operations based on what's actually missing
+    let totalOperations = 0;
+    for (const tutorial of tutorials) {
+      if (type === 'both') {
+        if (!tutorial.generatedContent?.text) totalOperations++;
+        if (!tutorial.generatedContent?.video) totalOperations++;
+      } else if (type === 'text' && !tutorial.generatedContent?.text) {
+        totalOperations++;
+      } else if (type === 'video' && !tutorial.generatedContent?.video) {
+        totalOperations++;
+      }
+    }
+
     let completedOperations = 0;
+    const progressSpan = progressRange.end - progressRange.start;
 
     this.addProgress({
       type: 'generating',
       message: `Starting generation of ${totalOperations} content pieces`,
-      progress: 0
+      progress: progressRange.start
     });
 
     for (let i = 0; i < updatedTutorials.length; i++) {
@@ -43,7 +57,7 @@ export class DownloadManager {
 
       // Generate missing text content
       if ((type === 'text' || type === 'both') && !tutorial.generatedContent?.text) {
-        const progress = Math.round((completedOperations / totalOperations) * 100);
+        const progress = progressRange.start + Math.round((completedOperations / totalOperations) * progressSpan);
 
         this.addProgress({
           type: 'generating',
@@ -55,19 +69,24 @@ export class DownloadManager {
         });
 
         try {
+          console.log(`🔄 Generating TEXT for: ${tutorial.title}`);
           const textContent = await this.callGenerateTutorialAPI(tutorial, 'text', originalUrl);
+          console.log(`✅ Generated TEXT for: ${tutorial.title}, length: ${textContent.length}`);
+
           updatedTutorials[i] = {
-            ...tutorial,
+            ...updatedTutorials[i],
             generatedContent: {
-              ...tutorial.generatedContent,
+              ...updatedTutorials[i].generatedContent,
               text: textContent,
               lastUpdated: new Date()
             }
           };
+
+          console.log(`💾 Saved TEXT for: ${tutorial.title}, now has text: ${!!updatedTutorials[i].generatedContent?.text}`);
           successCount++;
 
           completedOperations++;
-          const newProgress = Math.round((completedOperations / totalOperations) * 100);
+          const newProgress = progressRange.start + Math.round((completedOperations / totalOperations) * progressSpan);
           this.addProgress({
             type: 'completed',
             tutorialId: tutorial.id,
@@ -80,9 +99,9 @@ export class DownloadManager {
           console.error(`❌ Failed to generate text for ${tutorial.title}:`, error);
           const fallbackContent = this.generateBasicTextTutorial(tutorial);
           updatedTutorials[i] = {
-            ...tutorial,
+            ...updatedTutorials[i],
             generatedContent: {
-              ...tutorial.generatedContent,
+              ...updatedTutorials[i].generatedContent,
               text: fallbackContent,
               lastUpdated: new Date()
             }
@@ -90,7 +109,7 @@ export class DownloadManager {
           failedCount++;
 
           completedOperations++;
-          const newProgress = Math.round((completedOperations / totalOperations) * 100);
+          const newProgress = progressRange.start + Math.round((completedOperations / totalOperations) * progressSpan);
           this.addProgress({
             type: 'error',
             tutorialId: tutorial.id,
@@ -104,9 +123,9 @@ export class DownloadManager {
         await new Promise(resolve => setTimeout(resolve, 10000));
       }
 
-      // Generate missing video content (similar pattern)
+      // Generate missing video content  
       if ((type === 'video' || type === 'both') && !tutorial.generatedContent?.video) {
-        const progress = Math.round((completedOperations / totalOperations) * 100);
+        const progress = progressRange.start + Math.round((completedOperations / totalOperations) * progressSpan);
 
         this.addProgress({
           type: 'generating',
@@ -118,19 +137,24 @@ export class DownloadManager {
         });
 
         try {
+          console.log(`🔄 Generating VIDEO for: ${tutorial.title}`);
           const videoContent = await this.callGenerateTutorialAPI(tutorial, 'video', originalUrl);
+          console.log(`✅ Generated VIDEO for: ${tutorial.title}, length: ${videoContent.length}`);
+
           updatedTutorials[i] = {
-            ...tutorial,
+            ...updatedTutorials[i],
             generatedContent: {
-              ...tutorial.generatedContent,
+              ...updatedTutorials[i].generatedContent,
               video: videoContent,
               lastUpdated: new Date()
             }
           };
+
+          console.log(`💾 Saved VIDEO for: ${tutorial.title}, now has video: ${!!updatedTutorials[i].generatedContent?.video}`);
           successCount++;
 
           completedOperations++;
-          const newProgress = Math.round((completedOperations / totalOperations) * 100);
+          const newProgress = progressRange.start + Math.round((completedOperations / totalOperations) * progressSpan);
           this.addProgress({
             type: 'completed',
             tutorialId: tutorial.id,
@@ -143,9 +167,9 @@ export class DownloadManager {
           console.error(`❌ Failed to generate video for ${tutorial.title}:`, error);
           const fallbackContent = this.generateBasicVideoScript(tutorial);
           updatedTutorials[i] = {
-            ...tutorial,
+            ...updatedTutorials[i],
             generatedContent: {
-              ...tutorial.generatedContent,
+              ...updatedTutorials[i].generatedContent,
               video: fallbackContent,
               lastUpdated: new Date()
             }
@@ -153,7 +177,7 @@ export class DownloadManager {
           failedCount++;
 
           completedOperations++;
-          const newProgress = Math.round((completedOperations / totalOperations) * 100);
+          const newProgress = progressRange.start + Math.round((completedOperations / totalOperations) * progressSpan);
           this.addProgress({
             type: 'error',
             tutorialId: tutorial.id,
@@ -168,10 +192,11 @@ export class DownloadManager {
       }
     }
 
-    this.addProgress({
-      type: 'completed',
-      message: `Generation complete: ${successCount} success, ${failedCount} failed`,
-      progress: 100
+    console.log('=== FINAL STATE after generateMissingContent ===');
+    updatedTutorials.forEach((t, i) => {
+      console.log(`Tutorial ${i}: ${t.title}`);
+      console.log(`  - Has text: ${!!t.generatedContent?.text}`);
+      console.log(`  - Has video: ${!!t.generatedContent?.video}`);
     });
 
     return { tutorials: updatedTutorials, stats: { success: successCount, failed: failedCount } };
@@ -182,6 +207,13 @@ export class DownloadManager {
     contentType: 'text' | 'video',
     originalUrl: string
   ): Promise<string> {
+
+    // // DEBUG: Use debug version to see what's happening
+    // const content = await this.debugAPICall(tutorial, contentType, originalUrl);
+
+    // console.log(`✅ Successfully generated ${contentType} for ${tutorial.title}`);
+    // return content;
+
     try {
       console.log(`Calling API for ${tutorial.title} (${contentType}) with URL: ${originalUrl}`);
 
@@ -215,6 +247,7 @@ export class DownloadManager {
         throw new Error('No content returned from API');
       }
 
+      console.log(`✅ Successfully generated ${contentType} for ${tutorial.title}`);
       return data.content;
     } catch (error) {
       console.error(`API call failed for ${tutorial.title}:`, error);
@@ -222,18 +255,35 @@ export class DownloadManager {
     }
   }
 
-  private static async generateTutorialContent(tutorial: TutorialScaffold, type: 'text' | 'video'): Promise<string> {
+  // Add this to debug method to your DownloadManager
+  private static async debugAPICall(tutorial: TutorialScaffold, contentType: 'text' | 'video', originalUrl: string) {
     try {
-      // For now, we'll generate a basic content based on the scaffold
-      // In a real implementation, you'd call your AI API here
-      if (type === 'text') {
-        return this.generateBasicTextTutorial(tutorial);
-      } else {
-        return this.generateBasicVideoScript(tutorial);
-      }
+      console.log('=== DEBUG API CALL ===');
+      console.log('Tutorial:', tutorial.title);
+      console.log('Content Type:', contentType);
+      console.log('Has existing text content:', !!tutorial.generatedContent?.text);
+      console.log('Has existing video content:', !!tutorial.generatedContent?.video);
+
+      const response = await fetch('/api/generate-tutorial', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tutorial,
+          type: contentType,
+          originalUrl: originalUrl
+        }),
+      });
+
+      console.log('Response status:', response.status);
+      const data = await response.json();
+      console.log('Response data:', data);
+      console.log('Has content:', !!data.content);
+      console.log('=== END DEBUG ===');
+
+      return data.content;
     } catch (error) {
-      console.error(`Failed to generate ${type} content for ${tutorial.title}:`, error);
-      return `# ${tutorial.title}\n\nFailed to generate content. Please try generating this tutorial individually.\n\n## Outline\n${tutorial.outline.map((section, index) => `${index + 1}. ${section}`).join('\n')}`;
+      console.error('Debug API call failed:', error);
+      throw error;
     }
   }
 
@@ -327,25 +377,160 @@ PRODUCTION NOTES:
     originalUrl: string
   ): Promise<{ blob: Blob; stats: { success: number; failed: number; total: number }; filename: string }> {
     try {
-      const { blob, stats } = await this.createZipBundle(tutorials, options, originalUrl);
+      this.addProgress({
+        type: 'creating',
+        message: 'Starting bundle creation...',
+        progress: 0
+      });
+
+      // Generate content first if needed
+      let tutorialsToBundle = tutorials;
+      let generationStats = { success: 0, failed: 0, total: tutorials.length };
+
+      if (options.format === 'full') {
+        this.addProgress({
+          type: 'generating',
+          message: `Generating missing content for ${tutorials.length} tutorials`,
+          progress: 10
+        });
+
+        const result = await this.generateMissingContent(
+          tutorials,
+          options.type,
+          originalUrl,
+          { start: 10, end: 60 } // Content generation uses 10-60% of total progress
+        );
+        tutorialsToBundle = result.tutorials;
+        generationStats = { ...result.stats, total: tutorials.length };
+
+        this.addProgress({
+          type: 'completed',
+          message: 'Content generation completed',
+          progress: 60
+        });
+      } else {
+        this.addProgress({
+          type: 'creating',
+          message: 'Using existing scaffolds only',
+          progress: 30
+        });
+      }
+
+      const zip = new JSZip();
+
+      // Add CSV index
+      this.addProgress({
+        type: 'creating',
+        message: 'Creating CSV index...',
+        progress: options.format === 'full' ? 70 : 40
+      });
+      const csvContent = this.generateCSV(tutorialsToBundle);
+      zip.file('tutorial-scaffolds-index.csv', csvContent);
+
+      // Add README file
+      this.addProgress({
+        type: 'creating',
+        message: 'Creating README...',
+        progress: options.format === 'full' ? 75 : 45
+      });
+      const readmeContent = this.generateReadme(tutorialsToBundle, options, generationStats);
+      zip.file('README.md', readmeContent);
+
+      // Add tutorial files
+      this.addProgress({
+        type: 'creating',
+        message: 'Creating tutorial folders and files...',
+        progress: options.format === 'full' ? 80 : 50
+      });
+
+      for (let i = 0; i < tutorialsToBundle.length; i++) {
+        const tutorial = tutorialsToBundle[i];
+
+        console.log('=== DEBUG Creating files for tutorial:', tutorial.title);
+        console.log('Has text content:', !!tutorial.generatedContent?.text);
+        console.log('Has video content:', !!tutorial.generatedContent?.video);
+
+        const folderProgress = options.format === 'full'
+          ? 80 + Math.round((i / tutorialsToBundle.length) * 10)
+          : 50 + Math.round((i / tutorialsToBundle.length) * 40);
+
+        this.addProgress({
+          type: 'creating',
+          tutorialId: tutorial.id,
+          tutorialTitle: tutorial.title,
+          message: `Creating folder: ${tutorial.title}`,
+          progress: folderProgress
+        });
+
+        const folderName = tutorial.title.toLowerCase().replace(/[^a-z0-9]/g, '-');
+        const tutorialFolder = zip.folder(folderName);
+
+        if (tutorialFolder) {
+          // Always include scaffold
+          const scaffoldContent = await this.downloadScaffold(tutorial);
+          tutorialFolder.file('scaffold.md', scaffoldContent);
+
+          // Include full content if requested
+          if (options.format === 'full') {
+            if (options.type === 'text' || options.type === 'both') {
+              const textContent = await this.downloadFullContent(tutorial, 'text');
+              tutorialFolder.file('full-tutorial.md', textContent);
+            }
+
+            if (options.type === 'video' || options.type === 'both') {
+              const videoContent = await this.downloadFullContent(tutorial, 'video');
+              tutorialFolder.file('video-script.txt', videoContent);
+            }
+          }
+
+          // Add metadata file
+          const metadata = {
+            title: tutorial.title,
+            summary: tutorial.summary,
+            difficulty: tutorial.difficulty,
+            estimatedCost: tutorial.estimatedCost,
+            outline: tutorial.outline,
+            sourceUrl: tutorial.sourceUrl,
+            lastUpdated: tutorial.generatedContent?.lastUpdated || new Date().toISOString(),
+            hasFullContent: !!tutorial.generatedContent,
+            contentTypes: {
+              text: !!tutorial.generatedContent?.text,
+              video: !!tutorial.generatedContent?.video
+            },
+            generatedBy: tutorial.generatedContent ? 'AI API' : 'Template (Fallback)'
+          };
+          tutorialFolder.file('metadata.json', JSON.stringify(metadata, null, 2));
+        }
+      }
+
+      // Generate ZIP file
+      this.addProgress({
+        type: 'creating',
+        message: 'Compressing files into ZIP bundle...',
+        progress: 95
+      });
+
+      const blob = await zip.generateAsync({
+        type: 'blob',
+        compression: 'DEFLATE',
+        compressionOptions: { level: 6 }
+      });
+
+      this.addProgress({
+        type: 'completed',
+        message: `✅ DOWNLOAD READY! ZIP bundle created with ${generationStats.success} AI-generated, ${generationStats.failed} used templates`,
+        progress: 100
+      });
 
       const dateStr = new Date().toISOString().split('T')[0];
       const typeStr = options.format === 'scaffold' ? 'scaffolds' : 'full-content';
       const filename = `tutorial-${typeStr}-${dateStr}.zip`;
 
-      // Add final success message
-      this.addProgress({
-        type: 'completed',
-        message: `✅ Bundle ready! ${stats.success} AI-generated, ${stats.failed} used templates`,
-        progress: 100
-      });
-
-      return { blob, stats, filename };
+      return { blob, stats: generationStats, filename };
 
     } catch (error) {
       console.error('Error creating ZIP bundle:', error);
 
-      // Show error in progress modal
       this.addProgress({
         type: 'error',
         message: `❌ Failed to create bundle: ${error instanceof Error ? error.message : 'Unknown error'}`,
@@ -365,149 +550,6 @@ PRODUCTION NOTES:
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-  }
-
-  static async createZipBundle(
-    tutorials: TutorialScaffold[],
-    options: { format: 'scaffold' | 'full', type: 'text' | 'video' | 'both' },
-    originalUrl: string
-  ): Promise<{ blob: Blob, stats: { success: number, failed: number, total: number } }> {
-    let tutorialsToBundle = tutorials;
-    let generationStats = { success: 0, failed: 0, total: 0 };
-
-    this.addProgress({
-      type: 'creating',
-      message: 'Preparing bundle creation...',
-      progress: 0
-    });
-
-    // If full content is requested, generate missing content first
-    if (options.format === 'full') {
-      this.addProgress({
-        type: 'generating',
-        message: `Generating missing content for ${tutorials.length} tutorials`,
-        progress: 10
-      });
-
-      const result = await this.generateMissingContent(tutorials, options.type, originalUrl);
-      tutorialsToBundle = result.tutorials;
-      generationStats = { ...result.stats, total: tutorials.length };
-
-      this.addProgress({
-        type: 'completed',
-        message: 'Content generation completed',
-        progress: 60
-      });
-    } else {
-      this.addProgress({
-        type: 'creating',
-        message: 'Using existing scaffolds only',
-        progress: 30
-      });
-    }
-
-    const zip = new JSZip();
-
-    // Add CSV index
-    this.addProgress({
-      type: 'creating',
-      message: 'Creating CSV index...',
-      progress: options.format === 'full' ? 70 : 40
-    });
-    const csvContent = this.generateCSV(tutorialsToBundle);
-    zip.file('tutorial-scaffolds-index.csv', csvContent);
-
-    // Add README file
-    this.addProgress({
-      type: 'creating',
-      message: 'Creating README...',
-      progress: options.format === 'full' ? 75 : 45
-    });
-    const readmeContent = this.generateReadme(tutorialsToBundle, options, generationStats);
-    zip.file('README.md', readmeContent);
-
-    // Add tutorial files
-    this.addProgress({
-      type: 'creating',
-      message: 'Creating tutorial folders and files...',
-      progress: options.format === 'full' ? 80 : 50
-    });
-
-    for (let i = 0; i < tutorialsToBundle.length; i++) {
-      const tutorial = tutorialsToBundle[i];
-      const folderProgress = options.format === 'full'
-        ? 80 + Math.round((i / tutorialsToBundle.length) * 15)
-        : 50 + Math.round((i / tutorialsToBundle.length) * 45);
-
-      this.addProgress({
-        type: 'creating',
-        tutorialId: tutorial.id,
-        tutorialTitle: tutorial.title,
-        message: `Creating folder: ${tutorial.title}`,
-        progress: folderProgress
-      });
-
-      const folderName = tutorial.title.toLowerCase().replace(/[^a-z0-9]/g, '-');
-      const tutorialFolder = zip.folder(folderName);
-
-      if (tutorialFolder) {
-        // Always include scaffold
-        const scaffoldContent = await this.downloadScaffold(tutorial);
-        tutorialFolder.file('scaffold.md', scaffoldContent);
-
-        // Include full content if requested
-        if (options.format === 'full') {
-          if (options.type === 'text' || options.type === 'both') {
-            const textContent = await this.downloadFullContent(tutorial, 'text');
-            tutorialFolder.file('full-tutorial.md', textContent);
-          }
-
-          if (options.type === 'video' || options.type === 'both') {
-            const videoContent = await this.downloadFullContent(tutorial, 'video');
-            tutorialFolder.file('video-script.txt', videoContent);
-          }
-        }
-
-        // Add metadata file
-        const metadata = {
-          title: tutorial.title,
-          summary: tutorial.summary,
-          difficulty: tutorial.difficulty,
-          estimatedCost: tutorial.estimatedCost,
-          outline: tutorial.outline,
-          sourceUrl: tutorial.sourceUrl,
-          lastUpdated: tutorial.generatedContent?.lastUpdated || new Date().toISOString(),
-          hasFullContent: !!tutorial.generatedContent,
-          contentTypes: {
-            text: !!tutorial.generatedContent?.text,
-            video: !!tutorial.generatedContent?.video
-          },
-          generatedBy: tutorial.generatedContent ? 'AI API' : 'Template (Fallback)'
-        };
-        tutorialFolder.file('metadata.json', JSON.stringify(metadata, null, 2));
-      }
-    }
-
-    // Generate ZIP file
-    this.addProgress({
-      type: 'creating',
-      message: 'Compressing files into ZIP bundle...',
-      progress: 95
-    });
-
-    const blob = await zip.generateAsync({
-      type: 'blob',
-      compression: 'DEFLATE',
-      compressionOptions: { level: 6 }
-    });
-
-    this.addProgress({
-      type: 'completed',
-      message: 'ZIP bundle created successfully!',
-      progress: 100
-    });
-
-    return { blob, stats: generationStats };
   }
 
   private static generateReadme(
@@ -577,16 +619,36 @@ ${tutorial.outline.map((section, index) => `${index + 1}. ${section}`).join('\n'
   }
 
   static async downloadFullContent(tutorial: TutorialScaffold, type: 'text' | 'video'): Promise<string> {
+
+    console.log('=== DEBUG downloadFullContent ===');
+    console.log('Tutorial:', tutorial.title);
+    console.log('Requested type:', type);
+    console.log('Has generatedContent:', !!tutorial.generatedContent);
+    console.log('Has text content:', !!tutorial.generatedContent?.text);
+    console.log('Has video content:', !!tutorial.generatedContent?.video);
+    console.log('Text content length:', tutorial.generatedContent?.text?.length);
+    console.log('Video content length:', tutorial.generatedContent?.video?.length);
+
     if (type === 'text' && tutorial.generatedContent?.text) {
+      console.log('Returning existing text content');
+
       return tutorial.generatedContent.text;
     }
 
     if (type === 'video' && tutorial.generatedContent?.video) {
+      console.log('Returning existing video content');
+
       return tutorial.generatedContent.video;
     }
 
-    // Fallback to scaffold if no generated content
-    return this.downloadScaffold(tutorial);
+    // Fallback to generating basic content instead of scaffold
+    console.log('No generated content found, using fallback');
+
+    if (type === 'text') {
+      return this.generateBasicTextTutorial(tutorial);
+    } else {
+      return this.generateBasicVideoScript(tutorial);
+    }
   }
 
   static generateCSV(tutorials: TutorialScaffold[]): string {
@@ -619,51 +681,4 @@ ${tutorial.outline.map((section, index) => `${index + 1}. ${section}`).join('\n'
     URL.revokeObjectURL(url);
   }
 
-
-  static async downloadZipBundle(
-    tutorials: TutorialScaffold[],
-    options: { format: 'scaffold' | 'full', type: 'text' | 'video' | 'both' },
-    originalUrl: string
-  ) {
-    try {
-      const { blob, stats } = await this.createZipBundle(tutorials, options, originalUrl);
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-
-      const dateStr = new Date().toISOString().split('T')[0];
-      const typeStr = options.format === 'scaffold' ? 'scaffolds' : 'full-content';
-      a.download = `tutorial-${typeStr}-${dateStr}.zip`;
-
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-
-      // Add final success message and keep modal open for 2 seconds
-      this.addProgress({
-        type: 'completed',
-        message: `✅ Download complete! ${stats.success} AI-generated, ${stats.failed} used templates`,
-        progress: 100
-      });
-
-      // Wait 2 seconds before closing so user can see final status
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-    } catch (error) {
-      console.error('Error creating ZIP bundle:', error);
-
-      // Show error in progress modal
-      this.addProgress({
-        type: 'error',
-        message: `❌ Failed to create bundle: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        progress: 100
-      });
-
-      // Keep error visible for 7 seconds
-      await new Promise(resolve => setTimeout(resolve, 7000));
-
-      throw new Error('Failed to create download bundle');
-    }
-  }
 }

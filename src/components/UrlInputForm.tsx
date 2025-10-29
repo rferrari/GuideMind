@@ -13,6 +13,9 @@ export default function UrlInputForm() {
   const [rateLimit, setRateLimit] = useState<{ retryAfter: number; message: string } | null>(null);
   const [progressModalOpen, setProgressModalOpen] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [downloadState, setDownloadState] = useState<'idle' | 'generating' | 'ready'>('idle');
+  const [downloadBlob, setDownloadBlob] = useState<Blob | null>(null);
+  const [downloadFilename, setDownloadFilename] = useState<string>('');
   const [url, setUrl] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [tutorials, setTutorials] = useState<TutorialScaffold[]>([]);
@@ -25,6 +28,19 @@ export default function UrlInputForm() {
     type: 'text',
     includeEdited: true
   });
+  const [generatingTutorials, setGeneratingTutorials] = useState<Set<string>>(new Set());
+
+
+  const handleDownloadFromModal = (blob: Blob, filename: string) => {
+    // Actually download the file
+    DownloadManager.downloadBlob(blob, filename);
+
+    // Close modal after download
+    setProgressModalOpen(false);
+    setDownloadState('idle');
+    setDownloadBlob(null);
+    setDownloadFilename('');
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -169,13 +185,23 @@ export default function UrlInputForm() {
     try {
       setIsDownloading(true);
       setProgressModalOpen(true);
+      setDownloadState('generating');
+      setDownloadBlob(null);
+      setDownloadFilename('');
 
-      // Set up progress callback
+      // Set up progress callback BEFORE starting the download
       DownloadManager.setProgressCallback((step) => {
         console.log('Progress:', step);
+
+        // Update state when generation completes
+        if (step.progress === 100 &&
+          step.type === 'completed' &&
+          step.message.includes('DOWNLOAD READY')) {
+          setDownloadState('ready');
+        }
       });
 
-      // Create the bundle but don't download automatically
+      // Create the bundle
       const { blob, filename } = await DownloadManager.createDownloadBundle(
         tutorials,
         {
@@ -189,24 +215,15 @@ export default function UrlInputForm() {
       setDownloadBlob(blob);
       setDownloadFilename(filename);
 
+      // Final safety check - ensure state is ready when blob is available
+      // setDownloadState('ready');
+
     } catch (error) {
       console.error('Download error:', error);
-      // Error is already shown in the progress modal
+      setDownloadState('idle');
     } finally {
-      // Don't close the modal - let user see results and click download
+      setIsDownloading(false);
     }
-  };
-
-  // Add new state for download data
-  const [downloadBlob, setDownloadBlob] = useState<Blob | null>(null);
-  const [downloadFilename, setDownloadFilename] = useState<string>('');
-
-  // Handle the actual download
-  const handleDownload = (blob: Blob, filename: string) => {
-    DownloadManager.downloadBlob(blob, filename);
-    setProgressModalOpen(false);
-    setDownloadBlob(null);
-    setDownloadFilename('');
   };
 
   const downloadCSVOnly = () => {
@@ -273,13 +290,25 @@ export default function UrlInputForm() {
         isOpen={progressModalOpen}
         totalTutorials={tutorials.length}
         downloadOptions={downloadOptions}
-        onDownload={downloadBlob ? () => handleDownload(downloadBlob, downloadFilename) : undefined}
+        onDownload={handleDownloadFromModal}
         onCancel={() => {
-          setIsDownloading(false);
           setProgressModalOpen(false);
+          setDownloadState('idle');
+          setDownloadBlob(null);
+          setDownloadFilename('');
         }}
-        downloadReady={!!downloadBlob}
-        onClose={() => setProgressModalOpen(false)}
+        onClose={() => {
+          setProgressModalOpen(false);
+          setDownloadState('idle');
+          setDownloadBlob(null);
+          setDownloadFilename('');
+        }}
+        downloadState={downloadState}
+        downloadData={downloadBlob && downloadFilename ? { blob: downloadBlob, filename: downloadFilename } : null}
+        onGenerateAndDownload={downloadAllTutorials}
+        onDownloadReady={() => {
+          setDownloadState('ready');
+        }}
       />
 
       {error && (
@@ -348,10 +377,10 @@ export default function UrlInputForm() {
                 </button>
                 <button
                   onClick={downloadAllTutorials}
-                  disabled={isLoading}
+                  disabled={isDownloading}
                   className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors text-sm"
                 >
-                  {isLoading ? (
+                  {isDownloading ? (
                     <span className="flex items-center gap-2">
                       <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -384,13 +413,6 @@ export default function UrlInputForm() {
                   <div className="flex justify-between items-start mb-4">
                     <h3 className="font-bold text-xl text-white">{tutorial.title}</h3>
                     <div className="flex gap-2">
-                      {/* <button
-                        onClick={() => downloadIndividualTutorial(tutorial, 'text')}
-                        className="bg-gray-700 text-gray-200 px-3 py-1 rounded-md hover:bg-gray-600 transition-colors text-sm"
-                        title="Download scaffold"
-                      >
-                        📥 Scaffold
-                      </button> */}
                       <button
                         onClick={() => openGenerationModal(tutorial, 'text')}
                         className="bg-blue-600 text-white px-3 py-1 rounded-md hover:bg-blue-700 transition-colors text-sm"

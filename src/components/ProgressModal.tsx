@@ -21,6 +21,11 @@ interface ProgressModalProps {
   onCancel?: () => void;
   downloadReady?: boolean;
   onClose?: () => void;
+  // Add these new props for single button approach
+  downloadState?: 'idle' | 'generating' | 'ready';
+  downloadData?: { blob: Blob; filename: string } | null;
+  onGenerateAndDownload?: () => void;
+  onDownloadReady?: () => void;
 }
 
 export default function ProgressModal({
@@ -30,11 +35,17 @@ export default function ProgressModal({
   onDownload,
   onCancel,
   downloadReady = false,
-  onClose
+  onClose,
+  // New props
+  downloadState = 'idle',
+  downloadData = null,
+  onGenerateAndDownload,
+  onDownloadReady
 }: ProgressModalProps) {
   const [steps, setSteps] = useState<ProgressStep[]>([]);
   const [currentProgress, setCurrentProgress] = useState(0);
   const [isComplete, setIsComplete] = useState(false);
+  const [isDownloaded, setIsDownloaded] = useState(false);
   const [hasErrors, setHasErrors] = useState(false);
 
   // Reset state when modal opens
@@ -68,8 +79,15 @@ export default function ProgressModal({
     setCurrentProgress(step.progress);
 
     // Check if complete or has errors
-    if (step.type === 'completed' && step.progress === 100) {
+    if (step.progress === 100 &&
+      step.type === 'completed' &&
+      step.message.includes('DOWNLOAD READY')) {
+      // if (step.type === 'completed' && step.progress === 100) {
       setIsComplete(true);
+      // Notify parent that download is ready
+      if (onDownloadReady) {
+        onDownloadReady();
+      }
     }
     if (step.type === 'error') {
       setHasErrors(true);
@@ -89,10 +107,22 @@ export default function ProgressModal({
     };
   }, [isOpen]);
 
-  const handleDownload = () => {
-    if (onDownload) {
-      // This will be provided by the parent component
-      onDownload(new Blob(), 'tutorial-bundle.zip');
+
+  // Update the handleMainButtonClick
+  const handleMainButtonClick = () => {
+    if (downloadState === 'ready' && downloadData) {
+      // Actually download the file
+      if (onDownload) {
+        onDownload(downloadData.blob, downloadData.filename);
+        setIsDownloaded(true);
+        // Auto-close after download
+        setTimeout(() => {
+          if (onClose) onClose();
+        }, 2000);
+      }
+    } else if (downloadState === 'idle' && onGenerateAndDownload) {
+      // Start the generation process
+      onGenerateAndDownload();
     }
   };
 
@@ -109,6 +139,44 @@ export default function ProgressModal({
   const completedSteps = steps.filter(step => step.type === 'completed').length;
   const errorSteps = steps.filter(step => step.type === 'error').length;
 
+  // Determine button state and text
+  // Determine button state and text
+  const getButtonConfig = () => {
+    switch (downloadState) {
+      case 'generating':
+        return {
+          text: (
+            <span className="flex items-center gap-2">
+              <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Generating...
+            </span>
+          ),
+          bgColor: 'bg-blue-600',
+          hoverColor: 'hover:bg-blue-700', // Add 'hover:' prefix
+          disabled: true
+        };
+      case 'ready':
+        return {
+          text: '📥 Download Now!',
+          bgColor: 'bg-green-600',
+          hoverColor: 'hover:bg-green-700', // Add 'hover:' prefix
+          disabled: false
+        };
+      default: // idle
+        return {
+          text: 'Generate & Download',
+          bgColor: 'bg-blue-600',
+          hoverColor: 'hover:bg-blue-700', // Add 'hover:' prefix
+          disabled: false
+        };
+    }
+  };
+
+  const buttonConfig = getButtonConfig();
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-gray-800 rounded-lg max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col">
@@ -116,7 +184,9 @@ export default function ProgressModal({
         <div className="flex justify-between items-center p-6 border-b border-gray-700">
           <div>
             <h2 className="text-xl font-bold text-white">
-              {isComplete ? 'Bundle Ready!' : 'Creating Tutorial Bundle'}
+              {downloadState === 'ready' ? 'Bundle Ready!' :
+                downloadState === 'generating' ? 'Creating Tutorial Bundle' :
+                  'Ready to Generate'}
             </h2>
             <p className="text-gray-400 text-sm mt-1">
               {downloadOptions.format === 'scaffold' ? 'Scaffolds Only' : 'Full Content'} • {downloadOptions.type}
@@ -134,7 +204,9 @@ export default function ProgressModal({
         <div className="px-6 pt-4">
           <div className="w-full bg-gray-700 rounded-full h-2">
             <div
-              className={`h-2 rounded-full transition-all duration-500 ${hasErrors ? 'bg-red-500' : isComplete ? 'bg-green-500' : 'bg-blue-600'
+              className={`h-2 rounded-full transition-all duration-500 ${hasErrors ? 'bg-red-500' :
+                downloadState === 'ready' ? 'bg-green-500' :
+                  'bg-blue-600'
                 }`}
               style={{ width: `${currentProgress}%` }}
             />
@@ -147,9 +219,9 @@ export default function ProgressModal({
             {steps.map((step, index) => (
               <div key={step.id} className="flex items-start gap-3">
                 <div className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-sm ${step.type === 'completed' ? 'bg-green-500 text-white' :
-                    step.type === 'error' ? 'bg-red-500 text-white' :
-                      step.type === 'generating' ? 'bg-blue-500 text-white animate-pulse' :
-                        'bg-gray-600 text-gray-300'
+                  step.type === 'error' ? 'bg-red-500 text-white' :
+                    step.type === 'generating' ? 'bg-blue-500 text-white animate-pulse' :
+                      'bg-gray-600 text-gray-300'
                   }`}>
                   {step.type === 'completed' ? '✓' :
                     step.type === 'error' ? '✕' :
@@ -178,7 +250,7 @@ export default function ProgressModal({
           </div>
 
           {/* Completion Message */}
-          {isComplete && (
+          {downloadState === 'ready' && (
             <div className={`mt-6 p-4 rounded-lg ${hasErrors ? 'bg-yellow-900/20 border border-yellow-700' : 'bg-green-900/20 border border-green-700'
               }`}>
               <div className="flex items-center gap-3">
@@ -208,13 +280,19 @@ export default function ProgressModal({
           </div>
 
           <div className="flex gap-2">
-            {!isComplete ? (
+            {downloadState === 'generating' ? (
               <button
                 onClick={onCancel}
-                disabled={!isGenerating}
-                className="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-500 disabled:bg-gray-700 disabled:text-gray-400 disabled:cursor-not-allowed transition-colors"
+                className="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-500 transition-colors"
               >
                 Cancel
+              </button>
+            ) : isDownloaded ? (
+              <button
+                onClick={handleClose}
+                className="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 transition-colors"
+              >
+                ✅ Download Complete - Close
               </button>
             ) : (
               <>
@@ -225,10 +303,11 @@ export default function ProgressModal({
                   Close
                 </button>
                 <button
-                  onClick={handleDownload}
-                  className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
+                  onClick={handleMainButtonClick}
+                  disabled={buttonConfig.disabled}
+                  className={`${buttonConfig.bgColor} text-white px-6 py-2 rounded-md ${buttonConfig.hoverColor} transition-colors disabled:bg-gray-600 disabled:text-gray-400 disabled:cursor-not-allowed flex items-center gap-2`}
                 >
-                  📥 Download ZIP
+                  {buttonConfig.text}
                 </button>
               </>
             )}
