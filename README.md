@@ -292,6 +292,8 @@ If you have any questions or need help:
 
 * [ ] Refactor crawler into modular files (`core`, `extractors`, `filters`, `utils`)
 * [ ] Add unit tests for URL validation, extraction, and link filtering
+* [X] Add model fallback mechanism to handle API rate limits gracefully.
+* [X] Improve download manager with proper progress tracking during ZIP bundle creation.
 
 ---
 
@@ -349,7 +351,7 @@ If you have any questions or need help:
 * [ ] Add configurable `CRAWLER_USER_AGENT` in `.env`
 * [ ] Clean up logs and remove verbose console output in production
 * [ ] Add fallback rules when URLs fail validation or return 404
-* [ ] Improve UX feedback during crawl (progress logs, visual indicators)
+* [X] Improve UX feedback during crawl (progress logs, visual indicators)
 
 ---
 
